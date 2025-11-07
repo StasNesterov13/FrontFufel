@@ -49,7 +49,7 @@ const MenuScreen = () => {
         const data = await getMenuPlan(token);
         setMenuPlan(data);
       } catch (err) {
-        console.log("Ошибка загрузки меню:", err);
+        console.log(err);
         setMenuPlan(null);
       } finally {
         setLoading(false);
@@ -67,8 +67,8 @@ const MenuScreen = () => {
         end_date: "2025-11-13",
       });
       setMenuPlan(newPlan);
-    } catch (err: any) {
-      console.log("Ошибка при создании меню:", err);
+    } catch (err) {
+      console.log(err);
     } finally {
       setCreating(false);
     }
@@ -82,7 +82,7 @@ const MenuScreen = () => {
       await deleteMenuPlan(token);
       setMenuPlan(null);
     } catch (err) {
-      console.log("Ошибка при удалении меню:", err);
+      console.log(err);
     } finally {
       setDeleting(false);
     }

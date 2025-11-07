@@ -34,8 +34,8 @@ const RegisterScreen = () => {
       const data = await registerUser(email, password);
       await login(data.access_token);
       navigation.navigate("CreateProfile");
-    } catch (err: any) {
-      console.log(err.message);
+    } catch (err) {
+      console.log(err);
     }
   };
 

@@ -8,12 +8,11 @@ import { ScreenNavigationProp } from "@/types/navigation";
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useState } from "react";
 import {
-  Alert,
   Keyboard,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
+  TouchableWithoutFeedback
 } from "react-native";
 
 const LoginScreen = () => {
@@ -25,7 +24,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Ошибка", "Введите email и пароль");
+      console.log("Email")
       return;
     }
 
@@ -34,8 +33,8 @@ const LoginScreen = () => {
       const data = await loginUser(email, password);
       await login(data.access_token);
       navigation.navigate("MainTabs");
-    } catch (err: any) {
-      Alert.alert("Ошибка", "Неверные данные для входа");
+    } catch (err) {
+      console.log(err)
     } finally {
       setLoading(false);
     }

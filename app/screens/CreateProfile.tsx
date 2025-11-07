@@ -8,13 +8,12 @@ import { ScreenNavigationProp } from "@/types/navigation";
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useState } from "react";
 import {
-  Alert,
   Keyboard,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
@@ -33,11 +32,15 @@ const CreateProfileScreen = () => {
 
   const handleSubmit = async () => {
     if (!firstName || !lastName || !gender || !height || !activityLevel || !dietType) {
-      return Alert.alert("Ошибка", "Пожалуйста, заполните все поля");
+      console.log("NameError")
+      return;
     }
 
     const today = new Date();
-    if (birthDate > today) return Alert.alert("Ошибка", "Введите корректную дату рождения");
+    if (birthDate > today) {
+      console.log("DateError") 
+      return;
+    } 
 
     try {
       await createProfile(token!, {
@@ -49,10 +52,9 @@ const CreateProfileScreen = () => {
         activity_level: activityLevel,
         diet_type: dietType,
       });
-      Alert.alert("Успешно", "Профиль создан!");
       navigation.navigate("MainTabs");
-    } catch (err: any) {
-      console.log(err.message);
+    } catch (err) {
+      console.log(err);
     }
   };
 
