@@ -1,83 +1,91 @@
 import { loginUser } from "@/api/users";
+import AppButton from "@/components/AppButton";
+import FormInput from "@/components/AppInput";
+import AppText from "@/components/AppText";
 import { AuthContext } from "@/context/AuthContext";
+import { colors, spacing, typography } from "@/theme";
 import { ScreenNavigationProp } from "@/types/navigation";
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useState } from "react";
 import {
+  Alert,
   Keyboard,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from "react-native";
 
 const LoginScreen = () => {
   const { login } = useContext(AuthContext);
   const navigation = useNavigation<ScreenNavigationProp>();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    if (!email || !password) {
+      Alert.alert("Ошибка", "Введите email и пароль");
+      return;
+    }
+
     try {
+      setLoading(true);
       const data = await loginUser(email, password);
       await login(data.access_token);
-      navigation.navigate("Profile");
+      navigation.navigate("MainTabs");
     } catch (err: any) {
-      console.log(err.message);
+      Alert.alert("Ошибка", "Неверные данные для входа");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Вход</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <AppText style={styles.title}>Вход</AppText>
 
-        <FormInput placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" />
-        <FormInput placeholder="Пароль" value={password} onChangeText={setPassword} secureTextEntry />
+        <FormInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+        />
+        <FormInput
+          placeholder="Пароль"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Войти</Text>
-        </TouchableOpacity>
+        <AppButton title="Войти" onPress={handleLogin} loading={loading} />
 
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.link}>Зарегистрироваться</Text>
+          <AppText style={styles.link}>Зарегистрироваться</AppText>
         </TouchableOpacity>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
 };
 
-// Универсальный TextInput компонент
-const FormInput = ({ placeholder, value, onChangeText, secureTextEntry = false, autoCapitalize = "sentences" }: any) => (
-  <TextInput
-    placeholder={placeholder}
-    value={value}
-    onChangeText={onChangeText}
-    style={styles.input}
-    secureTextEntry={secureTextEntry}
-    autoCapitalize={autoCapitalize}
-  />
-);
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  title: {
+    ...typography.title,
+    marginBottom: spacing.lg,
+  },
+  link: {
+    textAlign: "center",
+    color: colors.primary,
+    fontWeight: 600,
+    marginTop: spacing.md,
+  },
+});
 
 export default LoginScreen;
-
-const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: "center", padding: 20, backgroundColor: "#f4f6fb" },
-  title: { fontSize: 24, fontWeight: "600", marginBottom: 20, textAlign: "center" },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    backgroundColor: "#fff",
-  },
-  button: { width: "100%", backgroundColor: "#4a6cf7", padding: 12, borderRadius: 8, alignItems: "center", marginBottom: 10 },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  link: { textAlign: "center", color: "#4a6cf7", fontWeight: "600", marginTop: 10 },
-});

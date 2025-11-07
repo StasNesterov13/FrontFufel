@@ -6,6 +6,7 @@ export type RootStackParamList = {
   Register: undefined;
   Profile: undefined;
   CreateProfile: undefined; 
+  MainTabs:undefined;
   // добавьте другие экраны при необходимости
 };
 

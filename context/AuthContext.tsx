@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const storedToken = await SecureStore.getItemAsync('token');
         if (storedToken) setToken(storedToken);
       } catch (error) {
-        console.error(error);
+        console.log(error);
       } finally {
         setIsLoading(false); // загрузка завершена
       }
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setToken(newToken);
       await SecureStore.setItemAsync('token', newToken);
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setToken(null);
       console.log('Токен удалён');
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 

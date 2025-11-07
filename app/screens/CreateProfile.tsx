@@ -1,5 +1,9 @@
 import { createProfile } from "@/api/profiles";
+import AppButton from "@/components/AppButton";
+import AppInput from "@/components/AppInput";
+import AppText from "@/components/AppText";
 import { AuthContext } from "@/context/AuthContext";
+import { colors, spacing, typography } from "@/theme";
 import { ScreenNavigationProp } from "@/types/navigation";
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useState } from "react";
@@ -8,8 +12,6 @@ import {
   Keyboard,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -22,7 +24,7 @@ const CreateProfileScreen = () => {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dietType, setDietType] = useState("");
+  const [dietType, setDietType] = useState<"vegan" | "vegetarian" | "pescatarian" | "halal" | "kosher" | "default" | null>(null);
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [activityLevel, setActivityLevel] = useState<"low" | "medium" | "high" | null>(null);
   const [height, setHeight] = useState("170");
@@ -48,7 +50,7 @@ const CreateProfileScreen = () => {
         diet_type: dietType,
       });
       Alert.alert("Успешно", "Профиль создан!");
-      navigation.navigate("Profile");
+      navigation.navigate("MainTabs");
     } catch (err: any) {
       console.log(err.message);
     }
@@ -57,33 +59,23 @@ const CreateProfileScreen = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Создание профиля</Text>
+        <AppText style={styles.title}>Создание профиля</AppText>
 
-        {/* --- Личные данные --- */}
-        <TextInput
-          placeholder="Имя"
-          value={firstName}
-          onChangeText={setFirstName}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Фамилия"
-          value={lastName}
-          onChangeText={setLastName}
-          style={styles.input}
-        />
+        <AppInput placeholder="Имя" value={firstName} onChangeText={setFirstName} />
+        <AppInput placeholder="Фамилия" value={lastName} onChangeText={setLastName} />
 
-        {/* --- Пол --- */}
-        <Text style={styles.label}>Пол</Text>
+        <AppText style={styles.label}>Пол</AppText>
         <View style={styles.row}>
           <ChoiceButton label="Мужской" selected={gender === "male"} onPress={() => setGender("male")} />
           <ChoiceButton label="Женский" selected={gender === "female"} onPress={() => setGender("female")} />
         </View>
 
-        {/* --- Дата рождения --- */}
-        <Text style={styles.label}>Дата рождения</Text>
-        <TouchableOpacity onPress={() => setDatePickerVisibility(true)} style={[styles.input, { justifyContent: "center" }]}>
-          <Text>{birthDate.toLocaleDateString("ru-RU")}</Text>
+        <AppText style={styles.label}>Дата рождения</AppText>
+        <TouchableOpacity
+          onPress={() => setDatePickerVisibility(true)}
+          style={[styles.input, { justifyContent: "center" }]}
+        >
+          <AppText>{birthDate.toLocaleDateString("ru-RU")}</AppText>
         </TouchableOpacity>
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
@@ -91,85 +83,115 @@ const CreateProfileScreen = () => {
           date={birthDate}
           maximumDate={new Date()}
           locale="ru_RU"
-          onConfirm={(d) => { setBirthDate(d); setDatePickerVisibility(false); }}
+          onConfirm={(d) => {
+            setBirthDate(d);
+            setDatePickerVisibility(false);
+          }}
           onCancel={() => setDatePickerVisibility(false)}
         />
 
-        {/* --- Рост --- */}
-        <Text style={styles.label}>Рост (см)</Text>
-        <TextInput
+        <AppText style={styles.label}>Рост (см)</AppText>
+        <AppInput
           placeholder="Рост"
           value={height}
           onChangeText={setHeight}
-          style={styles.input}
           keyboardType="numeric"
         />
 
-        {/* --- Активность --- */}
-        <Text style={styles.label}>Уровень активности</Text>
+        <AppText style={styles.label}>Уровень активности</AppText>
         <View style={styles.row}>
           <ChoiceButton label="Низкий" selected={activityLevel === "low"} onPress={() => setActivityLevel("low")} />
           <ChoiceButton label="Средний" selected={activityLevel === "medium"} onPress={() => setActivityLevel("medium")} />
           <ChoiceButton label="Высокий" selected={activityLevel === "high"} onPress={() => setActivityLevel("high")} />
         </View>
 
-        {/* --- Диета --- */}
-        <TextInput
-          placeholder="Тип диеты (например: сбалансированная, веганская, кето)"
-          value={dietType}
-          onChangeText={setDietType}
-          style={styles.input}
-        />
+        <AppText style={styles.label}>Тип диеты</AppText>
+        <View style={styles.rowWrap}>
+          <ChoiceButton label="Веганская" selected={dietType === "vegan"} onPress={() => setDietType("vegan")} />
+          <ChoiceButton label="Вегетарианская" selected={dietType === "vegetarian"} onPress={() => setDietType("vegetarian")} />
+          <ChoiceButton label="Пескетарианство" selected={dietType === "pescatarian"} onPress={() => setDietType("pescatarian")} />
+          <ChoiceButton label="Халяль" selected={dietType === "halal"} onPress={() => setDietType("halal")} />
+          <ChoiceButton label="Кошер" selected={dietType === "kosher"} onPress={() => setDietType("kosher")} />
+          <ChoiceButton label="Обычная" selected={dietType === "default"} onPress={() => setDietType("default")} />
+        </View>
 
-        {/* --- Кнопка --- */}
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Создать профиль</Text>
-        </TouchableOpacity>      
+        <AppButton title="Создать профиль" onPress={handleSubmit} />
       </ScrollView>
     </TouchableWithoutFeedback>
   );
 };
 
-// Вынесенная кнопка выбора
+// 🔘 Кнопка выбора (универсальная)
 const ChoiceButton = ({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) => (
   <TouchableOpacity
     style={[styles.choice, selected && styles.choiceSelected]}
     onPress={onPress}
   >
-    <Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</Text>
+    <AppText style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</AppText>
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: "center", padding: 20, backgroundColor: "#f4f6fb" },
-  title: { fontSize: 24, fontWeight: "600", marginBottom: 20, textAlign: "center" },
-  label: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    backgroundColor: "#fff",
-    textAlign: "center",
-  },
-  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 15 },
-  choice: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
-    marginHorizontal: 4,
-    backgroundColor: "#fff",
-  },
-  choiceSelected: { backgroundColor: "#4a6cf7", borderColor: "#4a6cf7" },
-  choiceText: { color: "#333", fontWeight: "500" },
-  choiceTextSelected: { color: "#fff" },
-  button: { width: "100%", backgroundColor: "#4a6cf7", padding: 12, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-});
-
 export default CreateProfileScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  title: {
+    ...typography.title,
+    marginBottom: spacing.lg,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.md,
+  },
+  row: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    marginBottom: spacing.md,
+  },
+  rowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    marginBottom: spacing.lg,
+  },
+  choice: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.sm,
+    marginBottom: spacing.sm,
+    minWidth: 100,
+  },
+  choiceSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  choiceText: {
+    color: colors.textPrimary,
+    fontWeight: 500,
+  },
+  choiceTextSelected: {
+    color: "#fff",
+  },
+});
