@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/constants/config";
 export const createProfile = async (
   token: string,
   profileData: {
@@ -10,7 +11,7 @@ export const createProfile = async (
     diet_type: string;
   }
 ) => {
-  const response = await fetch("http://192.168.0.102:8000/api/v1/profiles/", {
+  const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -30,7 +31,7 @@ export const createProfile = async (
 
 
 export const getProfile = async (token: string) => {
-  const response = await fetch("http://192.168.0.102:8000/api/v1/profiles/", {
+  const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

@@ -1,6 +1,6 @@
-import { loginUser } from "@/api/users";
+import { loginUser } from "@/api/auth";
 import AppButton from "@/components/AppButton";
-import FormInput from "@/components/AppInput";
+import AppInput from "@/components/AppInput";
 import AppText from "@/components/AppText";
 import { AuthContext } from "@/context/AuthContext";
 import { colors, spacing, typography } from "@/theme";
@@ -45,13 +45,13 @@ const LoginScreen = () => {
       <ScrollView contentContainerStyle={styles.container}>
         <AppText style={styles.title}>Вход</AppText>
 
-        <FormInput
+        <AppInput
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
         />
-        <FormInput
+        <AppInput
           placeholder="Пароль"
           value={password}
           onChangeText={setPassword}
