@@ -1,48 +1,35 @@
-import { AuthContext, AuthProvider } from "@/context/AuthContext";
-import { createStackNavigator } from "@react-navigation/stack";
-import React, { useContext } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { AuthProvider } from "@/context/AuthContext"
+import { createStackNavigator } from "@react-navigation/stack"
+import React from "react"
+import CreateGoalsScreen from "./screens/CreateGoals"
+import CreateMeasurementsScreen from "./screens/CreateMeasurements"
+import CreateProfileScreen from "./screens/CreateProfile"
+import LoginScreen from "./screens/Login"
+import RegisterScreen from "./screens/Register"
+import Tabs from "./screens/Tabs"
 
-import CreateProfileScreen from "./screens/CreateProfile";
-import LoginScreen from "./screens/Login";
-import MainTabs from "./screens/MainTabs";
-import RegisterScreen from "./screens/Register";
-const Stack = createStackNavigator();
+const Stack = createStackNavigator()
 
-// ---------- Основная логика ----------
 const AppNavigator = () => {
-  const { token, isLoading } = useContext(AuthContext);
-
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <Stack.Navigator
-      initialRouteName={token ? "MainTabs" : "Login"}
+      initialRouteName={"Tabs"}
       screenOptions={{ headerShown: false }}
     >
-      {/* Экраны без табов */}
+      <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
+      <Stack.Screen name="CreateMeasurements" component={CreateMeasurementsScreen} />
+      <Stack.Screen name="CreateGoals" component={CreateGoalsScreen} />
+      <Stack.Screen name="Tabs" component={Tabs} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
-
-      {/* Таббар появляется только когда пользователь на ProfileScreen */}
-      <Stack.Screen name="MainTabs" component={MainTabs} />
     </Stack.Navigator>
-  );
-};
+  )
+}
 
-
-// ---------- App ----------
 export default function App() {
   return (
     <AuthProvider>
-        <AppNavigator />
+      <AppNavigator />  
     </AuthProvider>
-  );
+  )
 }

@@ -9,6 +9,6 @@ const colors = {
   error: "#e74c3c",
   surface:"#fff",
 
-};
+}
 
-export default colors;
+export default colors

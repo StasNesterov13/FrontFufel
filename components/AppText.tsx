@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, Text, TextProps } from "react-native";
 
 const AppText = ({ style, ...props }: TextProps) => {
-  return <Text {...props} style={[styles.text, style]} />;
+  return <Text {...props} style={[styles.text, style]} />
 };
 
 const styles = StyleSheet.create({

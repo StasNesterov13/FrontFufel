@@ -21,6 +21,6 @@ const typography = {
     fontWeight: "400" as const,
     color: "#333",
   },
-} as const;
+} as const
 
-export default typography;
+export default typography

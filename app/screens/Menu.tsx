@@ -1,16 +1,13 @@
-import { createMenuPlan, deleteMenuPlan, getMenuPlan } from "@/api/menu_plans";
-import AppButton from "@/components/AppButton";
-import AppText from "@/components/AppText";
-import { AuthContext } from "@/context/AuthContext";
-import { colors, spacing, typography } from "@/theme";
-import React, { useContext, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { createMenuPlan, deleteMenuPlan, getMenuPlan, replaceRecipe } from "@/api/menu_plans"
+import AppButton from "@/components/AppButton"
+import AppRow from "@/components/AppRow"
+import AppText from "@/components/AppText"
+import { AuthContext } from "@/context/AuthContext"
+import { colors, spacing, typography } from "@/theme"
+import { ScreenNavigationProp } from "@/types/navigation"
+import { useNavigation } from "@react-navigation/native"
+import React, { useContext, useEffect, useState } from "react"
+import { ScrollView, StyleSheet, View } from "react-native"
 
 const daysOfWeek = [
   "Понедельник",
@@ -20,84 +17,61 @@ const daysOfWeek = [
   "Пятница",
   "Суббота",
   "Воскресенье",
-];
+]
 
-// 🔹 форматирование даты в дд.мм.гггг
-const formatDate = (dateString: string) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+
 
 const MenuScreen = () => {
-  const { token } = useContext(AuthContext);
-  const [menuPlan, setMenuPlan] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const { token } = useContext(AuthContext)
+  const navigation = useNavigation<ScreenNavigationProp>();
+  const [menuPlan, setMenuPlan] = useState<any>(null)
+  const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
-  // 🔹 Получаем меню при загрузке
   useEffect(() => {
-    if (!token) return;
     const fetchMenuPlan = async () => {
       try {
-        setLoading(true);
-        const data = await getMenuPlan(token);
-        setMenuPlan(data);
-      } catch (err) {
-        console.log(err);
-        setMenuPlan(null);
+        setLoading(true)
+        const data = await getMenuPlan(token!, navigation)
+        setMenuPlan(data)
+      } catch (error) {
+        console.log(error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchMenuPlan();
-  }, [token]);
+    }
+    fetchMenuPlan()
+  }, [])
 
-  // 🔹 Создание нового плана
   const handleCreatePlan = async () => {
     try {
-      setCreating(true);
-      const newPlan = await createMenuPlan(token!, {
+      setCreating(true)
+      await createMenuPlan(token!, {
         start_date: "2025-11-06",
         end_date: "2025-11-13",
-      });
-      setMenuPlan(newPlan);
-    } catch (err) {
-      console.log(err);
+      }, navigation)
+      const data = await getMenuPlan(token!, navigation)
+      setMenuPlan(data)
+    } catch (error) {
+      console.log(error)
     } finally {
-      setCreating(false);
+      setCreating(false)
     }
-  };
-
-  // 🔹 Удаление плана
-  const handleDeletePlan = async () => {
-    if (!token) return;
-    try {
-      setDeleting(true);
-      await deleteMenuPlan(token);
-      setMenuPlan(null);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  // 🔹 Состояние загрузки
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
   }
 
-  // 🔹 Если плана нет
+  const handleDeletePlan = async () => {
+    try {
+      setDeleting(true)
+      await deleteMenuPlan(token!, navigation)
+      setMenuPlan(null)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (!menuPlan) {
     return (
       <View style={styles.loader}>
@@ -106,96 +80,81 @@ const MenuScreen = () => {
           onPress={handleCreatePlan}
         />
       </View>
-    );
+    )
   }
 
-  // 🔹 Безопасное группирование рецептов по дням недели
-  const grouped =
-    Array.isArray(menuPlan?.menu_recipes) && menuPlan.menu_recipes.length > 0
-      ? menuPlan.menu_recipes.reduce((acc: any, item: any) => {
-          const day = item.day_of_week;
-          if (!acc[day]) acc[day] = [];
-          acc[day].push(item);
-          return acc;
-        }, {})
-      : {};
+  const grouped: Record<string, any[]> = {}
+  menuPlan?.menu_recipes?.forEach((item: any) => {
+    const day = item.day_of_week
+    if (!grouped[day]) grouped[day] = [];
+    grouped[day].push(item)
+  })
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <AppText style={styles.title}>Мой меню-план</AppText>
+      <ScrollView contentContainerStyle={styles.container}>
+        <AppText style={styles.title}>Мой меню-план</AppText>
 
-      <View style={styles.card}>
-        <MenuRow label="Дата начала" value={formatDate(menuPlan.start_date)} />
-        <MenuRow label="Дата окончания" value={formatDate(menuPlan.end_date)} />
-      </View>
+        <View style={styles.card}>
+          <AppRow label="Дата начала" value={new Date(menuPlan.start_date).toLocaleDateString("ru-RU")} />
+          <AppRow label="Дата окончания" value={new Date(menuPlan.end_date).toLocaleDateString("ru-RU")} />
+        </View>
 
-      {/* 🔹 Карточки по дням недели */}
-      {Object.keys(grouped).length > 0 ? (
-        Object.keys(grouped).map((dayKey) => {
-          const dayIndex = parseInt(dayKey) - 1;
-          const recipes = grouped[dayKey];
+        {Object.keys(grouped).map((dayKey) => {
+          const dayIndex = Number(dayKey) - 1
+          const recipes = grouped[dayKey]
+
           return (
             <View style={styles.card} key={dayKey}>
-              <AppText style={styles.subtitle}>
-                {daysOfWeek[dayIndex] || `День ${dayKey}`}
-              </AppText>
+              <AppText style={styles.subtitle}>{daysOfWeek[dayIndex]}</AppText>
 
               {recipes.map((r: any) => (
                 <View key={r.recipe.id} style={styles.recipeBlock}>
-                  {/* 🔹 Фото блюда, если есть */}
-                  {r.recipe.images_path ? (
-                    <Image
-                      source={{ uri: r.recipe.images_path }}
-                      style={styles.recipeImage}
-                      resizeMode="cover"
-                    />
-                  ) : null}
-
                   <AppText style={styles.recipeName}>{r.recipe.name}</AppText>
-                  <AppText style={styles.mealType}>
-                    Приём пищи: {r.meal_type}
-                  </AppText>
+                  <AppText style={styles.mealType}>Приём пищи: {r.meal_type}</AppText>
 
-                  {r.recipe.ingredients?.length > 0 && (
-                    <View style={styles.ingredientsBlock}>
-                      <AppText style={styles.ingredientsTitle}>
-                        Ингредиенты:
+                  <View style={styles.ingredientsBlock}>
+                    <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
+                    {r.recipe.ingredients?.map((ing: any) => (
+                      <AppText key={ing.id} style={styles.ingredientItem}>
+                        {ing.name} — {ing.quantity} {ing.unit}
                       </AppText>
-                      {r.recipe.ingredients.map((ing: any) => (
-                        <AppText key={ing.id} style={styles.ingredientItem}>
-                          • {ing.name} — {ing.quantity} {ing.unit}
-                        </AppText>
-                      ))}
-                    </View>
-                  )}
+                    ))}
+                  </View>
+
+                  <AppButton
+                    title="Заменить рецепт"
+                    onPress={async () => {
+                      try {
+                        const newRecipe = await replaceRecipe(token!, r.recipe.id, navigation)
+                        setMenuPlan((prev: any) => {
+                          const updated = { ...prev }
+                          updated.menu_recipes = updated.menu_recipes.map((item: any) =>
+                            item.recipe.id === r.recipe.id
+                              ? { ...item, recipe: newRecipe }
+                              : item
+                          )
+                          return updated
+                        })
+                      } catch (error) {
+                        console.log(error)
+                      }
+                    }}
+                  />
                 </View>
               ))}
             </View>
-          );
-        })
-      ) : (
-        <View style={styles.card}>
-          <AppText>Рецепты не найдены</AppText>
-        </View>
-      )}
+          )
+        })}
 
-      <AppButton
-        title={deleting ? "Удаление..." : "Удалить меню-план"}
-        onPress={handleDeletePlan}
-      />
-    </ScrollView>
-  );
-};
+        <AppButton
+          title={deleting ? "Удаление..." : "Удалить меню-план"}
+          onPress={handleDeletePlan}
+        />
+      </ScrollView>
+  )
+}
 
-// 🔹 Компонент строки (дата начала / окончания)
-const MenuRow = ({ label, value }: { label: string; value: string }) => (
-  <View style={styles.row}>
-    <AppText style={styles.label}>{label}</AppText>
-    <AppText style={styles.value}>{value}</AppText>
-  </View>
-);
-
-export default MenuScreen;
+export default MenuScreen
 
 const styles = StyleSheet.create({
   loader: {
@@ -273,4 +232,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
   },
-});
+})

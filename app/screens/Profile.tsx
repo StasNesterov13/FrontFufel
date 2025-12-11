@@ -1,47 +1,39 @@
-import { getProfile } from "@/api/profiles";
-import AppButton from "@/components/AppButton";
-import AppText from "@/components/AppText";
-import { AuthContext } from "@/context/AuthContext";
-import { colors, spacing, typography } from "@/theme";
-import { ScreenNavigationProp } from "@/types/navigation";
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { getProfile } from "@/api/profiles"
+import AppButton from "@/components/AppButton"
+import AppRow from "@/components/AppRow"
+import AppText from "@/components/AppText"
+import { AuthContext } from "@/context/AuthContext"
+import { colors, spacing, typography } from "@/theme"
+import { ScreenNavigationProp } from "@/types/navigation"
+import { useNavigation } from "@react-navigation/native"
+import React, { useContext, useEffect, useState } from "react"
+import { ScrollView, StyleSheet, View } from "react-native"
 
 const ProfileScreen = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { token, logout} = useContext(AuthContext)
+  const navigation = useNavigation<ScreenNavigationProp>()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState<boolean>(true)
 
-  // Если токен пропал — возвращаем на логин
   useEffect(() => {
-    if (!token) navigation.navigate("Login");
-  }, [token]);
-
-  // Загружаем профиль один раз при монтировании
-  useEffect(() => {
-    if (!token) return;
     const fetchProfile = async () => {
-      try {
-        const data = await getProfile(token);
-        setProfile(data);
-      } catch (err) {
-        console.log("Ошибка загрузки профиля:", err);
-      } finally {
-        setLoading(false);
+    try {
+      const data = await getProfile(token!, navigation)
+      setProfile(data)
+    } 
+    catch (error: any) {
+      if (error.cause.status === 400) {
+        navigation.navigate("CreateProfile")
+        return
       }
-    };
-    fetchProfile();
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+      console.log(error.status)
+    } 
+    finally {
+      setLoading(false)
+    }
+    }
+    fetchProfile()
+  }, [])
 
   if (!profile) {
     return (
@@ -50,8 +42,12 @@ const ProfileScreen = () => {
           title="Создать профиль"
           onPress={() => navigation.navigate("CreateProfile")}
         />
+        <AppText style={styles.logout} onPress={() => {logout(); navigation.navigate("Login"); }}>
+          Выйти
+        </AppText>
       </View>
-    );
+
+    )
   }
 
   const profileRows = [
@@ -62,42 +58,34 @@ const ProfileScreen = () => {
     { label: "Рост", value: `${profile.height} см` },
     { label: "Уровень активности", value: translateActivity(profile.activity_level) },
     { label: "Тип диеты", value: translateDiet(profile.diet_type) },
-  ];
+  ]
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <AppText style={styles.title}>Мой профиль</AppText>
-
       <View style={styles.card}>
         {profileRows.map(({ label, value }) => (
-          <ProfileRow key={label} label={label} value={value} />
+          <AppRow key={label} label={label} value={value} />
         ))}
       </View>
 
-      <AppText style={styles.logout} onPress={logout}>
+      <AppText style={styles.logout} onPress={() => {logout(); navigation.navigate("Login"); }}>
         Выйти
       </AppText>
     </ScrollView>
-  );
-};
+  )
+}
 
-// 🔹 Компонент строки профиля
-const ProfileRow = ({ label, value }: { label: string; value: string | number }) => (
-  <View style={styles.row}>
-    <AppText style={styles.label}>{label}</AppText>
-    <AppText style={styles.value}>{value}</AppText>
-  </View>
-);
-
-// 🔹 Перевод уровня активности
 const translateActivity = (level: string) => {
   const map: Record<string, string> = {
-    low: "Низкий",
-    medium: "Средний",
+    minimal: "Минимальный",
+    light: "Легкий",
+    moderate: "Средний",
     high: "Высокий",
-  };
-  return map[level];
-};
+    very_high: "Очень высокий",
+  }
+  return map[level]
+}
 
 // 🔹 Перевод типа диеты
 const translateDiet = (diet: string) => {
@@ -108,11 +96,11 @@ const translateDiet = (diet: string) => {
     halal: "Халяль",
     kosher: "Кошер",
     default: "Обычная",
-  };
-  return map[diet];
-};
+  }
+  return map[diet]
+}
 
-export default ProfileScreen;
+export default ProfileScreen
 
 const styles = StyleSheet.create({
   loader: {
@@ -162,4 +150,4 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     fontSize: 16,
   },
-});
+})

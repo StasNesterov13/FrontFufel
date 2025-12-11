@@ -1,63 +1,47 @@
-import { createProfile } from "@/api/profiles";
-import AppButton from "@/components/AppButton";
-import AppInput from "@/components/AppInput";
-import AppText from "@/components/AppText";
-import { AuthContext } from "@/context/AuthContext";
-import { colors, spacing, typography } from "@/theme";
-import { ScreenNavigationProp } from "@/types/navigation";
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useState } from "react";
-import {
-  Keyboard,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
-} from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { createProfile } from "@/api/profiles"
+import AppButton from "@/components/AppButton"
+import AppInput from "@/components/AppInput"
+import AppText from "@/components/AppText"
+import ChoiceButton from "@/components/ChoiceButton"
+import { AuthContext } from "@/context/AuthContext"
+import { colors, spacing, typography } from "@/theme"
+import { ScreenNavigationProp } from "@/types/navigation"
+import { useNavigation } from "@react-navigation/native"
+import React, { useContext, useState } from "react"
+import { Keyboard, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native"
+import DateTimePickerModal from "react-native-modal-datetime-picker"
 
 const CreateProfileScreen = () => {
-  const { token } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token, logout} = useContext(AuthContext)
+  const navigation = useNavigation<ScreenNavigationProp>()
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dietType, setDietType] = useState<"vegan" | "vegetarian" | "pescatarian" | "halal" | "kosher" | "default" | null>(null);
-  const [gender, setGender] = useState<"male" | "female" | null>(null);
-  const [activityLevel, setActivityLevel] = useState<"low" | "medium" | "high" | null>(null);
-  const [height, setHeight] = useState("170");
-  const [birthDate, setBirthDate] = useState(new Date(2000, 0, 1));
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [dietType, setDietType] = useState<"vegan" | "vegetarian" | "pescatarian" | "halal" | "kosher" | "default">("default")
+  const [gender, setGender] = useState<"male" | "female">("male")
+  const [activityLevel, setActivityLevel] = useState<"minimal" | "light" | "moderate" | "high"| "very_high">("moderate")
+  const [height, setHeight] = useState("170")
+  const [birthDate, setBirthDate] = useState(new Date())
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
 
   const handleSubmit = async () => {
-    if (!firstName || !lastName || !gender || !height || !activityLevel || !dietType) {
-      console.log("NameError")
-      return;
-    }
-
-    const today = new Date();
-    if (birthDate > today) {
-      console.log("DateError") 
-      return;
-    } 
 
     try {
       await createProfile(token!, {
         first_name: firstName,
         last_name: lastName,
-        gender,
-        birth_date: birthDate.toISOString(),
+        gender: gender!,
+        birth_date: birthDate.toISOString().split("T")[0],
         height: Number(height),
-        activity_level: activityLevel,
-        diet_type: dietType,
-      });
-      navigation.navigate("MainTabs");
-    } catch (err) {
-      console.log(err);
+        activity_level: activityLevel!,
+        diet_type: dietType!,
+      }, navigation)
+      navigation.navigate("CreateMeasurements")
+    } catch (error) {
+      console.log(error)
     }
-  };
-
+  }
+  
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -86,8 +70,8 @@ const CreateProfileScreen = () => {
           maximumDate={new Date()}
           locale="ru_RU"
           onConfirm={(d) => {
-            setBirthDate(d);
-            setDatePickerVisibility(false);
+            setBirthDate(d)
+            setDatePickerVisibility(false)
           }}
           onCancel={() => setDatePickerVisibility(false)}
         />
@@ -102,9 +86,31 @@ const CreateProfileScreen = () => {
 
         <AppText style={styles.label}>Уровень активности</AppText>
         <View style={styles.row}>
-          <ChoiceButton label="Низкий" selected={activityLevel === "low"} onPress={() => setActivityLevel("low")} />
-          <ChoiceButton label="Средний" selected={activityLevel === "medium"} onPress={() => setActivityLevel("medium")} />
-          <ChoiceButton label="Высокий" selected={activityLevel === "high"} onPress={() => setActivityLevel("high")} />
+          <ChoiceButton
+            label="Минимальный"
+            selected={activityLevel === "minimal"}
+            onPress={() => setActivityLevel("minimal")}
+          />
+          <ChoiceButton
+            label="Лёгкий"
+            selected={activityLevel === "light"}
+            onPress={() => setActivityLevel("light")}
+          />
+          <ChoiceButton
+            label="Средний"
+            selected={activityLevel === "moderate"}
+            onPress={() => setActivityLevel("moderate")}
+          />
+          <ChoiceButton
+            label="Высокий"
+            selected={activityLevel === "high"}
+            onPress={() => setActivityLevel("high")}
+          />
+          <ChoiceButton
+            label="Очень высокий"
+            selected={activityLevel === "very_high"}
+            onPress={() => setActivityLevel("very_high")}
+          />
         </View>
 
         <AppText style={styles.label}>Тип диеты</AppText>
@@ -118,22 +124,16 @@ const CreateProfileScreen = () => {
         </View>
 
         <AppButton title="Создать профиль" onPress={handleSubmit} />
+        <AppText style={styles.logout} onPress={() => {logout(); navigation.navigate("Login"); }}>
+          Выйти
+        </AppText>
       </ScrollView>
     </TouchableWithoutFeedback>
-  );
-};
+  )
+}
 
-// 🔘 Кнопка выбора (универсальная)
-const ChoiceButton = ({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) => (
-  <TouchableOpacity
-    style={[styles.choice, selected && styles.choiceSelected]}
-    onPress={onPress}
-  >
-    <AppText style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</AppText>
-  </TouchableOpacity>
-);
 
-export default CreateProfileScreen;
+export default CreateProfileScreen
 
 const styles = StyleSheet.create({
   container: {
@@ -196,4 +196,10 @@ const styles = StyleSheet.create({
   choiceTextSelected: {
     color: "#fff",
   },
-});
+  logout: {
+    textAlign: "center",
+    color: colors.error,
+    fontWeight: 700,
+    fontSize: 16,
+  },
+})
