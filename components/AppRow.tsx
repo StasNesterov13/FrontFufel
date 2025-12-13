@@ -1,7 +1,7 @@
-import AppText from "@/components/AppText";
-import { colors, spacing } from "@/theme";
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import AppText from '@/components/AppText';
+import { colors, spacing } from '@/theme';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 const AppRow = ({ label, value }: { label: string; value: string }) => (
   <View style={styles.row}>
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     color: colors.textSecondary,
     marginBottom: 2,
   },

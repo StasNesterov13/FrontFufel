@@ -1,12 +1,12 @@
-import { API_BASE_URL } from "@/constants/config"
-import { ScreenNavigationProp } from "@/types/navigation"
+import { API_BASE_URL } from '@/constants/config';
+import { ScreenNavigationProp } from '@/types/navigation';
 
 type GoalData = {
-  type: string
-  target_weight: number
-  start_at: string
-  end_at: string
-}
+  type: string;
+  target_weight: number;
+  start_at: string;
+  end_at: string;
+};
 
 // Создать цель
 export const createGoals = async (
@@ -15,44 +15,41 @@ export const createGoals = async (
   navigation: ScreenNavigationProp
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(goalData),
-  })
+  });
 
   if (!response.ok) {
     if (response.status === 401) {
-      navigation.navigate("Login") // редирект на Login при 401
-      return
+      navigation.navigate('Login'); // редирект на Login при 401
+      return;
     }
-    const error = await response.text()
-    throw new Error(error)
+    const error = await response.text();
+    throw new Error(error);
   }
 
-  return await response.json()
-}
+  return await response.json();
+};
 
 // Получить цели
-export const getGoals = async (
-  token: string,
-  navigation: ScreenNavigationProp
-) => {
+export const getGoals = async (token: string, navigation: ScreenNavigationProp) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
-    method: "GET",
+    method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  })
+  });
 
   if (!response.ok) {
     if (response.status === 401) {
-      navigation.navigate("Login") 
-      return
+      navigation.navigate('Login');
+      return;
     }
-    const error = await response.text()
+    const error = await response.text();
     throw new Error(error, {
       cause: {
         status: response.status,
@@ -60,9 +57,8 @@ export const getGoals = async (
     });
   }
 
-  return await response.json()
-}
-
+  return await response.json();
+};
 
 export const updateGoals = async (
   token: string,
@@ -70,22 +66,22 @@ export const updateGoals = async (
   navigation: ScreenNavigationProp
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
-    method: "PATCH",
+    method: 'PATCH',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(goalData),
-  })
+  });
 
   if (!response.ok) {
     if (response.status === 401) {
-      navigation.navigate("Login")
-      return
+      navigation.navigate('Login');
+      return;
     }
-    const error = await response.text()
-    throw new Error(error)
+    const error = await response.text();
+    throw new Error(error);
   }
 
-  return await response.json()
-}
+  return await response.json();
+};

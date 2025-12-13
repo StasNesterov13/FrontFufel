@@ -1,32 +1,32 @@
-import { updateGoals } from "@/api/goals"
-import { colors, spacing } from "@/theme"
-import { ScreenNavigationProp } from "@/types/navigation"
-import { useNavigation } from "@react-navigation/native"
-import React, { useState } from "react"
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native"
-import DateTimePickerModal from "react-native-modal-datetime-picker"
-import AppButton from "./AppButton"
-import AppInput from "./AppInput"
-import AppText from "./AppText"
-import ChoiceButton from "./ChoiceButton"
+import { updateGoals } from '@/api/goals';
+import { colors, spacing } from '@/theme';
+import { ScreenNavigationProp } from '@/types/navigation';
+import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import AppButton from './AppButton';
+import AppInput from './AppInput';
+import AppText from './AppText';
+import ChoiceButton from './ChoiceButton';
 
 interface Props {
-  visible: boolean
-  onClose: () => void
-  goal: any
-  token: string
-  onUpdated: (data: any) => void
+  visible: boolean;
+  onClose: () => void;
+  goal: any;
+  token: string;
+  onUpdated: (data: any) => void;
 }
 
 const UpdateGoals = ({ visible, onClose, goal, token, onUpdated }: Props) => {
-  const navigation = useNavigation<ScreenNavigationProp>()
+  const navigation = useNavigation<ScreenNavigationProp>();
 
-  const [type, setType] = useState<"cut" | "bulk" | "maintain">(goal.type)
-  const [targetWeight, setTargetWeight] = useState(String(goal.target_weight))
-  const [startAt, setStartAt] = useState(new Date(goal.start_at))
-  const [endAt, setEndAt] = useState(new Date(goal.end_at))
-  const [isStartPickerVisible, setStartPickerVisibility] = useState(false)
-  const [isEndPickerVisible, setEndPickerVisibility] = useState(false)
+  const [type, setType] = useState<'cut' | 'bulk' | 'maintain'>(goal.type);
+  const [targetWeight, setTargetWeight] = useState(String(goal.target_weight));
+  const [startAt, setStartAt] = useState(new Date(goal.start_at));
+  const [endAt, setEndAt] = useState(new Date(goal.end_at));
+  const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
+  const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
 
   const handleSave = async () => {
     try {
@@ -39,32 +39,44 @@ const UpdateGoals = ({ visible, onClose, goal, token, onUpdated }: Props) => {
           end_at: endAt.toISOString(),
         },
         navigation
-      )
-      onUpdated(result)
-      onClose()
+      );
+      onUpdated(result);
+      onClose();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType='slide'>
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <AppText style={styles.title}>Изменить цель</AppText>
 
           <AppText style={styles.label}>Тип цели</AppText>
           <View style={styles.row}>
-            <ChoiceButton label="Снижение веса" selected={type === "cut"} onPress={() => setType("cut")} />
-            <ChoiceButton label="Набор веса" selected={type === "bulk"} onPress={() => setType("bulk")} />
-            <ChoiceButton label="Поддержание веса" selected={type === "maintain"} onPress={() => setType("maintain")} />
+            <ChoiceButton
+              label='Снижение веса'
+              selected={type === 'cut'}
+              onPress={() => setType('cut')}
+            />
+            <ChoiceButton
+              label='Набор веса'
+              selected={type === 'bulk'}
+              onPress={() => setType('bulk')}
+            />
+            <ChoiceButton
+              label='Поддержание веса'
+              selected={type === 'maintain'}
+              onPress={() => setType('maintain')}
+            />
           </View>
 
           <AppText style={styles.label}>Целевой вес (кг)</AppText>
           <AppInput
             style={styles.input}
-            placeholder="Целевой вес"
-            keyboardType="numeric"
+            placeholder='Целевой вес'
+            keyboardType='numeric'
             value={targetWeight}
             onChangeText={setTargetWeight}
           />
@@ -72,17 +84,17 @@ const UpdateGoals = ({ visible, onClose, goal, token, onUpdated }: Props) => {
           <AppText style={styles.label}>Дата начала</AppText>
           <TouchableOpacity
             onPress={() => setStartPickerVisibility(true)}
-            style={[styles.input, { justifyContent: "center" }]}
+            style={[styles.input, { justifyContent: 'center' }]}
           >
-            <AppText>{startAt.toLocaleDateString("ru-RU")}</AppText>
+            <AppText>{startAt.toLocaleDateString('ru-RU')}</AppText>
           </TouchableOpacity>
           <DateTimePickerModal
             isVisible={isStartPickerVisible}
-            mode="date"
+            mode='date'
             date={startAt}
             onConfirm={(d) => {
-              setStartAt(d)
-              setStartPickerVisibility(false)
+              setStartAt(d);
+              setStartPickerVisibility(false);
             }}
             onCancel={() => setStartPickerVisibility(false)}
           />
@@ -90,42 +102,42 @@ const UpdateGoals = ({ visible, onClose, goal, token, onUpdated }: Props) => {
           <AppText style={styles.label}>Дата окончания</AppText>
           <TouchableOpacity
             onPress={() => setEndPickerVisibility(true)}
-            style={[styles.input, { justifyContent: "center" }]}
+            style={[styles.input, { justifyContent: 'center' }]}
           >
-            <AppText>{endAt.toLocaleDateString("ru-RU")}</AppText>
+            <AppText>{endAt.toLocaleDateString('ru-RU')}</AppText>
           </TouchableOpacity>
           <DateTimePickerModal
             isVisible={isEndPickerVisible}
-            mode="date"
+            mode='date'
             date={endAt}
             onConfirm={(d) => {
-              setEndAt(d)
-              setEndPickerVisibility(false)
+              setEndAt(d);
+              setEndPickerVisibility(false);
             }}
             onCancel={() => setEndPickerVisibility(false)}
           />
 
-          <AppButton title="Сохранить" onPress={handleSave} />
+          <AppButton title='Сохранить' onPress={handleSave} />
           <View style={{ marginTop: 8 }}>
-            <AppButton title="Отмена" onPress={onClose} />
+            <AppButton title='Отмена' onPress={onClose} />
           </View>
         </View>
       </View>
     </Modal>
-  )
-}
+  );
+};
 
-export default UpdateGoals
+export default UpdateGoals;
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modal: {
-    width: "85%",
+    width: '85%',
     backgroundColor: colors.white,
     padding: spacing.lg,
     borderRadius: 12,
@@ -133,18 +145,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: spacing.sm,
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
     color: colors.textSecondary,
   },
   row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginBottom: spacing.md,
   },
   input: {
@@ -154,4 +166,4 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
-})
+});

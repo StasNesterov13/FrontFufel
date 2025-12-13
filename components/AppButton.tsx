@@ -1,6 +1,6 @@
-import { colors, spacing } from "@/theme";
-import React from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { colors, spacing } from '@/theme';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 interface Props {
   title: string;
@@ -23,12 +23,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     padding: spacing.md,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: spacing.sm,
   },
   text: {
     color: colors.white,
-    fontWeight: "600",
+    fontWeight: '600',
     fontSize: 16,
   },
 });

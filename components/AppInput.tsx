@@ -1,6 +1,6 @@
-import { colors, spacing } from "@/theme";
-import React from "react";
-import { StyleSheet, TextInput, TextInputProps } from "react-native";
+import { colors, spacing } from '@/theme';
+import React from 'react';
+import { StyleSheet, TextInput, TextInputProps } from 'react-native';
 
 const AppInput = (props: TextInputProps) => (
   <TextInput
@@ -12,7 +12,7 @@ const AppInput = (props: TextInputProps) => (
 
 const styles = StyleSheet.create({
   input: {
-    width: "100%",
+    width: '100%',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,

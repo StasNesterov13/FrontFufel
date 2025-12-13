@@ -1,7 +1,7 @@
-import AppText from "@/components/AppText";
-import { colors, spacing } from "@/theme";
-import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import AppText from '@/components/AppText';
+import { colors, spacing } from '@/theme';
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 const ChoiceButton = ({
   label,
@@ -12,13 +12,8 @@ const ChoiceButton = ({
   selected: boolean;
   onPress: () => void;
 }) => (
-  <TouchableOpacity
-    style={[styles.choice, selected && styles.choiceSelected]}
-    onPress={onPress}
-  >
-    <AppText style={[styles.choiceText, selected && styles.choiceTextSelected]}>
-      {label}
-    </AppText>
+  <TouchableOpacity style={[styles.choice, selected && styles.choiceSelected]} onPress={onPress}>
+    <AppText style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</AppText>
   </TouchableOpacity>
 );
 
@@ -30,8 +25,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 8,
     backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing.sm,
     marginBottom: spacing.sm,
     minWidth: 100,
@@ -42,11 +37,11 @@ const styles = StyleSheet.create({
   },
   choiceText: {
     color: colors.textPrimary,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   choiceTextSelected: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
   },
 });
 
