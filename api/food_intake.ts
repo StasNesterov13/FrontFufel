@@ -101,7 +101,7 @@ export const updateFoodIntake = async (
 
 export const deleteFoodIntake = async (
   token: string,
-  foodIntakeId: number,
+  foodIntakeId: string,
   navigation: ScreenNavigationProp
 ) => {
   const response = await fetch(

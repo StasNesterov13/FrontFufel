@@ -9,6 +9,32 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+interface Ingredient {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
+interface Recipe {
+  id: number;
+  name: string;
+  ingredients: Ingredient[];
+}
+
+interface MenuItem {
+  id: string;
+  day_of_week: number; // 1 = Пн ... 7 = Вс
+  meal_type: string;
+  recipe: Recipe;
+}
+
+interface MenuPlan {
+  start_date: string;
+  end_date: string;
+  menu_recipes: MenuItem[];
+}
+
 const daysOfWeek = [
   'Понедельник',
   'Вторник',
@@ -22,21 +48,17 @@ const daysOfWeek = [
 const MenuScreen = () => {
   const { token } = useContext(AuthContext);
   const navigation = useNavigation<ScreenNavigationProp>();
-  const [menuPlan, setMenuPlan] = useState<any>(null);
+  const [menuPlan, setMenuPlan] = useState<MenuPlan | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchMenuPlan = async () => {
       try {
-        setLoading(true);
         const data = await getMenuPlan(token!, navigation);
         setMenuPlan(data);
       } catch (error) {
         console.log(error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchMenuPlan();
@@ -47,10 +69,7 @@ const MenuScreen = () => {
       setCreating(true);
       await createMenuPlan(
         token!,
-        {
-          start_date: '2025-11-06',
-          end_date: '2025-11-13',
-        },
+        { start_date: '2025-11-06', end_date: '2025-11-13' },
         navigation
       );
       const data = await getMenuPlan(token!, navigation);
@@ -85,11 +104,11 @@ const MenuScreen = () => {
     );
   }
 
-  const grouped: Record<string, any[]> = {};
-  menuPlan?.menu_recipes?.forEach((item: any) => {
-    const day = item.day_of_week;
-    if (!grouped[day]) grouped[day] = [];
-    grouped[day].push(item);
+  // Группировка по дню недели
+  const grouped: Record<number, MenuItem[]> = {};
+  menuPlan.menu_recipes.forEach((item) => {
+    if (!grouped[item.day_of_week]) grouped[item.day_of_week] = [];
+    grouped[item.day_of_week].push(item);
   });
 
   return (
@@ -109,22 +128,22 @@ const MenuScreen = () => {
 
       {Object.keys(grouped).map((dayKey) => {
         const dayIndex = Number(dayKey) - 1;
-        const recipes = grouped[dayKey];
+        const recipes = grouped[Number(dayKey)];
 
         return (
           <View style={styles.card} key={dayKey}>
             <AppText style={styles.subtitle}>{daysOfWeek[dayIndex]}</AppText>
 
-            {recipes.map((r: any) => (
-              <View key={r.recipe.id} style={styles.recipeBlock}>
-                <AppText style={styles.recipeName}>{r.recipe.name}</AppText>
-                <AppText style={styles.mealType}>Приём пищи: {r.meal_type}</AppText>
+            {recipes.map((item: MenuItem) => (
+              <View key={item.recipe.id} style={styles.recipeBlock}>
+                <AppText style={styles.recipeName}>{item.recipe.name}</AppText>
+                <AppText style={styles.mealType}>Приём пищи: {item.meal_type}</AppText>
 
                 <View style={styles.ingredientsBlock}>
                   <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
-                  {r.recipe.ingredients?.map((ing: any) => (
+                  {item.recipe.ingredients.map((ing: Ingredient) => (
                     <AppText key={ing.id} style={styles.ingredientItem}>
-                      {ing.name} — {ing.quantity} {ing.unit}
+                      {ing.name} - {ing.quantity > 0 ? `${ing.quantity} ${ing.unit}` : 'по вкусу'}
                     </AppText>
                   ))}
                 </View>
@@ -133,12 +152,15 @@ const MenuScreen = () => {
                   title='Заменить рецепт'
                   onPress={async () => {
                     try {
-                      const newRecipe = await replaceRecipe(token!, r.recipe.id, navigation);
-                      setMenuPlan((prev: any) => {
-                        const updated = { ...prev };
-                        updated.menu_recipes = updated.menu_recipes.map((item: any) =>
-                          item.recipe.id === r.recipe.id ? { ...item, recipe: newRecipe } : item
-                        );
+                      const newRecipe = await replaceRecipe(token!, item.recipe.id, navigation);
+                      setMenuPlan((prev) => {
+                        if (!prev) return prev;
+                        const updated: MenuPlan = {
+                          ...prev,
+                          menu_recipes: prev.menu_recipes.map((mi) =>
+                            mi.recipe.id === item.recipe.id ? { ...mi, recipe: newRecipe } : mi
+                          ),
+                        };
                         return updated;
                       });
                     } catch (error) {
@@ -193,27 +215,8 @@ const styles = StyleSheet.create({
     elevation: 4,
     marginBottom: spacing.xl,
   },
-  row: {
-    marginBottom: spacing.sm,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 16,
-    color: colors.text,
-  },
   recipeBlock: {
     marginBottom: spacing.md,
-  },
-  recipeImage: {
-    width: '100%',
-    height: 160,
-    borderRadius: 10,
-    marginBottom: spacing.sm,
   },
   recipeName: {
     fontSize: 16,

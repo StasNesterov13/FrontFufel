@@ -9,7 +9,14 @@ import RegisterScreen from './screens/Register';
 import Tabs from './screens/Tabs';
 
 const Stack = createStackNavigator();
+const originalWarn = console.warn;
 
+console.warn = (...args) => {
+  if (args[0].includes('createAnimatedPropAdapter')) {
+    return;
+  }
+  originalWarn(...args);
+};
 const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName={'Tabs'} screenOptions={{ headerShown: false }}>

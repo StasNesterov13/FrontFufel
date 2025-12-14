@@ -21,13 +21,11 @@ const ProfileScreen = () => {
         const data = await getProfile(token!, navigation);
         setProfile(data);
       } catch (error: any) {
-        if (error.cause.status === 400) {
+        if (error.cause?.status === 400) {
           navigation.navigate('CreateProfile');
           return;
         }
-        console.log(error.status);
-      } finally {
-        setLoading(false);
+        console.log(error?.status ?? error);
       }
     };
     fetchProfile();
@@ -93,7 +91,6 @@ const translateActivity = (level: string) => {
   return map[level];
 };
 
-// 🔹 Перевод типа диеты
 const translateDiet = (diet: string) => {
   const map: Record<string, string> = {
     vegan: 'Веганская',
@@ -136,24 +133,11 @@ const styles = StyleSheet.create({
     elevation: 4,
     marginBottom: spacing.xl,
   },
-  row: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: 500,
-    color: colors.text,
-  },
   logout: {
     textAlign: 'center',
     color: colors.error,
-    fontWeight: 700,
+    fontWeight: '700',
     fontSize: 16,
+    marginTop: spacing.lg,
   },
 });

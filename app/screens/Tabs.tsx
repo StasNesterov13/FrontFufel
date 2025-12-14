@@ -20,7 +20,7 @@ const getTabIcon = (routeName: string, color: string, size: number) => {
     Профиль: 'person-outline',
   };
 
-  const iconName = iconsMap[routeName] || 'home-outline';
+  const iconName = iconsMap[routeName];
   return <Ionicons name={iconName} size={size} color={color} />;
 };
 
@@ -29,7 +29,7 @@ const Tabs = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        lazy: false, // все вкладки монтируются сразу
+        lazy: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: { backgroundColor: colors.white, paddingBottom: 4, height: 60 },
