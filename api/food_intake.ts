@@ -1,21 +1,11 @@
 import { API_BASE_URL } from '@/constants/config';
+import { FoodIntakeDataAPI } from '@/types/dataAPI';
 import { ScreenNavigationProp } from '@/types/navigation';
-
-interface FoodIntakeData {
-  intake_time: string;
-  grams: number;
-  recipe_id?: number;
-  name?: string;
-  calories?: number;
-  protein?: number;
-  fat?: number;
-  carbs?: number;
-}
 
 export const getFoodIntakes = async (
   token: string,
-  target_date: string,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  target_date: string
 ) => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const formData = new URLSearchParams();
@@ -45,8 +35,8 @@ export const getFoodIntakes = async (
 
 export const createFoodIntake = async (
   token: string,
-  foodIntakeData: FoodIntakeData,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  foodIntakeData: FoodIntakeDataAPI
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/food-intakes/`, {
     method: 'POST',
@@ -71,9 +61,9 @@ export const createFoodIntake = async (
 
 export const updateFoodIntake = async (
   token: string,
+  navigation: ScreenNavigationProp,
   foodIntakeId: number,
-  foodIntakeData: FoodIntakeData,
-  navigation: ScreenNavigationProp
+  foodIntakeData: FoodIntakeDataAPI
 ) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/food-intakes/?food_intake_id=${foodIntakeId}`,
@@ -101,8 +91,8 @@ export const updateFoodIntake = async (
 
 export const deleteFoodIntake = async (
   token: string,
-  foodIntakeId: string,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  foodIntakeId: string
 ) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/food-intakes/?food_intake_id=${foodIntakeId}`,

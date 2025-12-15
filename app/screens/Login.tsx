@@ -20,18 +20,14 @@ const LoginScreen = () => {
   const navigation = useNavigation<ScreenNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState<boolean>(true);
 
   const handleLogin = async () => {
     try {
-      setLoading(true);
       const data = await loginUser(email, password, navigation);
       await login(data.access_token);
       navigation.navigate('Tabs');
     } catch (error: any) {
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   };
 

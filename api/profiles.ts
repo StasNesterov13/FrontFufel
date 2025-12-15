@@ -13,8 +13,8 @@ export interface ProfileData {
 
 export const createProfile = async (
   token: string,
-  profileData: ProfileData,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  profileData: ProfileData
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
     method: 'POST',

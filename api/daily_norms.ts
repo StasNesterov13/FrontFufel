@@ -47,8 +47,8 @@ export const recalculateDailyNorms = async (token: string, navigation: ScreenNav
 
 export const getDailyProgress = async (
   token: string,
-  target_date: string,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  target_date: string
 ) => {
   const query = new URLSearchParams(target_date);
   query.append('target_date', target_date);

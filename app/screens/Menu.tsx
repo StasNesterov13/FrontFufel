@@ -4,36 +4,11 @@ import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
 import { AuthContext } from '@/context/AuthContext';
 import { colors, spacing, typography } from '@/theme';
+import { Ingredient, MenuItem, MenuPlanData } from '@/types/data';
 import { ScreenNavigationProp } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-
-interface Ingredient {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-}
-
-interface Recipe {
-  id: number;
-  name: string;
-  ingredients: Ingredient[];
-}
-
-interface MenuItem {
-  id: string;
-  day_of_week: number; // 1 = Пн ... 7 = Вс
-  meal_type: string;
-  recipe: Recipe;
-}
-
-interface MenuPlan {
-  start_date: string;
-  end_date: string;
-  menu_recipes: MenuItem[];
-}
 
 const daysOfWeek = [
   'Понедельник',
@@ -48,7 +23,7 @@ const daysOfWeek = [
 const MenuScreen = () => {
   const { token } = useContext(AuthContext);
   const navigation = useNavigation<ScreenNavigationProp>();
-  const [menuPlan, setMenuPlan] = useState<MenuPlan | null>(null);
+  const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -67,11 +42,10 @@ const MenuScreen = () => {
   const handleCreatePlan = async () => {
     try {
       setCreating(true);
-      await createMenuPlan(
-        token!,
-        { start_date: '2025-11-06', end_date: '2025-11-13' },
-        navigation
-      );
+      await createMenuPlan(token!, navigation, {
+        start_date: '2025-11-06',
+        end_date: '2025-11-13',
+      });
       const data = await getMenuPlan(token!, navigation);
       setMenuPlan(data);
     } catch (error) {
@@ -85,11 +59,31 @@ const MenuScreen = () => {
     try {
       setDeleting(true);
       await deleteMenuPlan(token!, navigation);
-      setMenuPlan(null);
     } catch (error) {
       console.log(error);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleReplaceRecipe = async (
+    item: MenuItem,
+    token: string,
+    navigation: ScreenNavigationProp
+  ) => {
+    try {
+      const newRecipe = await replaceRecipe(token, navigation, item.recipe.id);
+      setMenuPlan((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          menu_recipes: prev.menu_recipes.map((mi) =>
+            mi.recipe.id === item.recipe.id ? { ...mi, recipe: newRecipe } : mi
+          ),
+        };
+      });
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -150,23 +144,7 @@ const MenuScreen = () => {
 
                 <AppButton
                   title='Заменить рецепт'
-                  onPress={async () => {
-                    try {
-                      const newRecipe = await replaceRecipe(token!, item.recipe.id, navigation);
-                      setMenuPlan((prev) => {
-                        if (!prev) return prev;
-                        const updated: MenuPlan = {
-                          ...prev,
-                          menu_recipes: prev.menu_recipes.map((mi) =>
-                            mi.recipe.id === item.recipe.id ? { ...mi, recipe: newRecipe } : mi
-                          ),
-                        };
-                        return updated;
-                      });
-                    } catch (error) {
-                      console.log(error);
-                    }
-                  }}
+                  onPress={() => handleReplaceRecipe(item, token!, navigation)}
                 />
               </View>
             ))}

@@ -1,18 +1,12 @@
 import { API_BASE_URL } from '@/constants/config';
+import { MeasurementData } from '@/types/data';
 import { ScreenNavigationProp } from '@/types/navigation';
-
-type MeasurementData = {
-  measured_at: string;
-  weight: number;
-  bodyfat: number;
-  notes: string;
-};
 
 // Создать измерение
 export const createMeasurements = async (
   token: string,
-  measurementData: MeasurementData,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  measurementData: MeasurementData
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/`, {
     method: 'POST',
@@ -35,7 +29,6 @@ export const createMeasurements = async (
   return await response.json();
 };
 
-// Получить измерения
 export const getMeasurements = async (token: string, navigation: ScreenNavigationProp) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/`, {
     method: 'GET',

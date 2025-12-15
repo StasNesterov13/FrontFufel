@@ -7,46 +7,35 @@ import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
+import WeekPicker from '@/components/AppWeekPicker';
 import LoadingView from '@/components/LoadingView';
 import UpdateGoals from '@/components/UpdateGoals';
 import UpdateMeasurements from '@/components/UpdateMeasurements';
 import { AuthContext } from '@/context/AuthContext';
 import { colors, spacing } from '@/theme';
+import { FoodIntakeData, GoalData, MeasurementData } from '@/types/data';
 import { ScreenNavigationProp } from '@/types/navigation';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import CircularProgress from 'react-native-circular-progress-indicator';
-
-type FoodItem = {
-  id: string;
-  name: string;
-  grams: number;
-  intake_time: string;
-  protein: number;
-  fat: number;
-  carbs: number;
-  calories: number;
-};
-
 const HomeScreen = () => {
   const { token } = useContext(AuthContext);
   const navigation = useNavigation<ScreenNavigationProp>();
 
-  const [measurement, setMeasurement] = useState<any>(null);
-  const [goal, setGoal] = useState<any>(null);
+  const [measurement, setMeasurement] = useState<MeasurementData>();
+  const [goal, setGoal] = useState<GoalData>();
   const [dailyProgress, setDailyProgress] = useState<any>(null);
   const [dailyNorms, setDailyNorms] = useState<any>(null);
   const [menuPlan, setMenuPlan] = useState<any>(null);
-  const [foodIntake, setFoodIntake] = useState<FoodItem[]>([]);
+  const [foodIntake, setFoodIntake] = useState<FoodIntakeData[]>([]);
   const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
   const [updateMeasurment, setUpdateMeasurment] = useState(false);
   const [updateGoal, setUpdateGoal] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [grams, setGrams] = useState<string>('150');
-  const today = new Date().toISOString().split('T')[0];
-  const todayTime = new Date().toISOString();
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString());
 
   useFocusEffect(
     React.useCallback(() => {
@@ -63,95 +52,84 @@ const HomeScreen = () => {
     }, [])
   );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const measurements = await getLastMeasurements(token!, navigation);
-        setMeasurement(measurements);
-      } catch (error: any) {
-        if (error.cause?.status === 400) {
-          navigation.navigate('CreateMeasurements');
-          return;
-        }
-        console.log(error);
+  const fetchData = async () => {
+    try {
+      const measurements = await getLastMeasurements(token!, navigation);
+      setMeasurement(measurements);
+    } catch (error: any) {
+      if (error.cause?.status === 400) {
+        navigation.navigate('CreateMeasurements');
+        return;
       }
-
-      try {
-        const goals = await getGoals(token!, navigation);
-        setGoal(goals);
-      } catch (error: any) {
-        if (error.cause?.status === 400) {
-          navigation.navigate('CreateGoals');
-          return;
-        }
-        console.log(error);
-      }
-
-      try {
-        const progress = await getDailyProgress(token!, today, navigation);
-        setDailyProgress(progress);
-      } catch (error) {
-        console.log(error);
-      }
-
-      try {
-        const norms = await getDailyNorms(token!, navigation);
-        setDailyNorms(norms);
-      } catch (error) {
-        console.log(error);
-      }
-
-      try {
-        const food = await getFoodIntakes(token!, today, navigation);
-        setFoodIntake(food);
-      } catch (error) {
-        console.log(error);
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) return <LoadingView />;
-
-  const handleAddFood = async () => {
-    if (!selectedRecipeId) return;
+      console.log(error);
+    }
 
     try {
-      await createFoodIntake(
-        token!,
-        {
-          intake_time: todayTime,
-          recipe_id: selectedRecipeId,
-          grams: Number(grams),
-        },
-        navigation
-      );
-      const progress = await getDailyProgress(token!, today, navigation);
+      const goals = await getGoals(token!, navigation);
+      setGoal(goals);
+    } catch (error: any) {
+      if (error.cause?.status === 400) {
+        navigation.navigate('CreateGoals');
+        return;
+      }
+      console.log(error);
+    }
+    setLoading(false);
+  };
+
+  const fetchDaily = async (date: string) => {
+    const today = date.split('T')[0];
+    try {
+      const progress = await getDailyProgress(token!, navigation, today);
       setDailyProgress(progress);
     } catch (error) {
       console.log(error);
     }
 
     try {
-      const food = await getFoodIntakes(token!, today, navigation);
+      const norms = await getDailyNorms(token!, navigation);
+      setDailyNorms(norms);
+    } catch (error) {
+      console.log(error);
+    }
+
+    try {
+      const food = await getFoodIntakes(token!, navigation, today);
       setFoodIntake(food);
     } catch (error) {
       console.log(error);
     }
   };
 
+  useEffect(() => {
+    fetchDaily(selectedDate);
+    fetchData();
+  }, []);
+  if (loading) return <LoadingView />;
+
+  const handleAddFood = async () => {
+    if (!selectedRecipeId) return;
+
+    try {
+      await createFoodIntake(token!, navigation, {
+        intake_time: selectedDate,
+        recipe_id: selectedRecipeId,
+        grams: Number(grams),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    fetchDaily(selectedDate);
+  };
+
   const handleDeleteFood = async (id: string) => {
     try {
-      await deleteFoodIntake(token!, id, navigation);
-      // обновляем локально только один элемент
-      setFoodIntake((prev) => prev.filter((item: FoodItem) => item.id !== id));
-      const progress = await getDailyProgress(token!, today, navigation);
+      await deleteFoodIntake(token!, navigation, id);
+      setFoodIntake((prev) => prev.filter((item: FoodIntakeData) => item.id !== id));
+      const progress = await getDailyProgress(token!, navigation, selectedDate.split('T')[0]);
       setDailyProgress(progress);
     } catch (error) {
-      console.log('Ошибка при удалении:', error);
+      console.log(error);
     }
   };
 
@@ -159,6 +137,14 @@ const HomeScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View>
+        <WeekPicker
+          onDayChange={(date) => {
+            setSelectedDate(date.toISOString());
+            fetchDaily(date.toISOString());
+          }}
+        />
+      </View>
       {dailyProgress && dailyNorms && (
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Питание за сегодня</AppText>
@@ -234,7 +220,7 @@ const HomeScreen = () => {
           </View>
 
           {/* Добавление блюда */}
-          {recipeOptions.length > 0 && (
+          {recipeOptions && (
             <View style={{ marginTop: 20 }}>
               <AppText style={{ fontWeight: '600', marginBottom: 8 }}>Добавить блюдо</AppText>
               <View
@@ -278,10 +264,10 @@ const HomeScreen = () => {
       )}
 
       {/* Список принятой пищи */}
-      {foodIntake.length > 0 && (
+      {foodIntake && (
         <View style={{ marginTop: 20 }}>
           <AppText style={{ fontWeight: '600', marginBottom: 10 }}>Принято сегодня</AppText>
-          {foodIntake.map((item: FoodItem) => (
+          {foodIntake.map((item: FoodIntakeData) => (
             <View
               key={item.id}
               style={{

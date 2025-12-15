@@ -1,16 +1,12 @@
 import { API_BASE_URL } from '@/constants/config';
+import { MenuPlanDataAPI } from '@/types/dataAPI';
 import { ScreenNavigationProp } from '@/types/navigation';
-
-export interface MenuPlanCreate {
-  start_date: string; // пример: "2025-11-06"
-  end_date: string; // пример: "2025-11-13"
-}
 
 // Создать меню-план
 export const createMenuPlan = async (
   token: string,
-  menuData: MenuPlanCreate,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  menuData: MenuPlanDataAPI
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
     method: 'POST',
@@ -79,8 +75,8 @@ export const deleteMenuPlan = async (token: string, navigation: ScreenNavigation
 // Заменить рецепт
 export const replaceRecipe = async (
   token: string,
-  recipeId: number,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  recipeId: number
 ) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/menu-plans/replace-recipe?recipe_id=${recipeId}`,

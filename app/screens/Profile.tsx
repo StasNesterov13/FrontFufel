@@ -13,7 +13,6 @@ const ProfileScreen = () => {
   const { token, logout } = useContext(AuthContext);
   const navigation = useNavigation<ScreenNavigationProp>();
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchProfile = async () => {

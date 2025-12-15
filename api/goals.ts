@@ -1,18 +1,12 @@
 import { API_BASE_URL } from '@/constants/config';
+import { GoalData } from '@/types/data';
 import { ScreenNavigationProp } from '@/types/navigation';
-
-type GoalData = {
-  type: string;
-  target_weight: number;
-  start_at: string;
-  end_at: string;
-};
 
 // Создать цель
 export const createGoals = async (
   token: string,
-  goalData: GoalData,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  goalData: GoalData
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
     method: 'POST',
@@ -35,7 +29,6 @@ export const createGoals = async (
   return await response.json();
 };
 
-// Получить цели
 export const getGoals = async (token: string, navigation: ScreenNavigationProp) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
     method: 'GET',
@@ -62,8 +55,8 @@ export const getGoals = async (token: string, navigation: ScreenNavigationProp) 
 
 export const updateGoals = async (
   token: string,
-  goalData: Partial<GoalData>,
-  navigation: ScreenNavigationProp
+  navigation: ScreenNavigationProp,
+  goalData: Partial<GoalData>
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/goals/`, {
     method: 'PATCH',
