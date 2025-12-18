@@ -1,7 +1,7 @@
-import { getDailyNorms, getDailyProgress } from '@/api/daily_norms';
+import { getDailyNorms, getDayProgress } from '@/api/daily_norms';
 import { createFoodIntake, deleteFoodIntake, getFoodIntakes } from '@/api/food_intake';
 import { getGoals } from '@/api/goals';
-import { getLastMeasurements } from '@/api/measurements';
+import { getLastMeasurement } from '@/api/measurements';
 import { getMenuPlan } from '@/api/menu_plans';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
@@ -11,148 +11,161 @@ import WeekPicker from '@/components/AppWeekPicker';
 import LoadingView from '@/components/LoadingView';
 import UpdateGoals from '@/components/UpdateGoals';
 import UpdateMeasurements from '@/components/UpdateMeasurements';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { toISODate } from '@/hooks/useDate';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing } from '@/theme';
-import { FoodIntakeData, GoalData, MeasurementData } from '@/types/data';
-import { ScreenNavigationProp } from '@/types/navigation';
+import {
+  DailyNormsData,
+  DayProgressData,
+  FoodIntakeData,
+  GoalData,
+  MeasurementData,
+  MenuPlanData,
+} from '@/types/data';
 import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useContext, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import CircularProgress from 'react-native-circular-progress-indicator';
 const HomeScreen = () => {
-  const { token } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token } = useAuth();
+  const navigation = useAppNavigation();
 
   const [measurement, setMeasurement] = useState<MeasurementData>();
   const [goal, setGoal] = useState<GoalData>();
-  const [dailyProgress, setDailyProgress] = useState<any>(null);
-  const [dailyNorms, setDailyNorms] = useState<any>(null);
-  const [menuPlan, setMenuPlan] = useState<any>(null);
+  const [dayProgress, setDayProgress] = useState<DayProgressData>();
+  const [dailyNorms, setDailyNorms] = useState<DailyNormsData>();
+  const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [foodIntake, setFoodIntake] = useState<FoodIntakeData[]>([]);
-  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
+  const [recipeId, setRecipeId] = useState<number | null>(null);
   const [updateMeasurment, setUpdateMeasurment] = useState(false);
   const [updateGoal, setUpdateGoal] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [grams, setGrams] = useState<string>('150');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString());
+  const [date, setDate] = useState<Date>(new Date());
 
   useFocusEffect(
     React.useCallback(() => {
-      const fetchData = async () => {
+      const fetchPlan = async () => {
         try {
-          const menu = await getMenuPlan(token!, navigation);
-          setMenuPlan(menu);
+          const data = await getMenuPlan(token);
+          setMenuPlan(data);
         } catch (error) {
-          setMenuPlan(null);
           console.log(error);
         }
       };
-      fetchData();
+      fetchPlan();
     }, [])
   );
 
   const fetchData = async () => {
     try {
-      const measurements = await getLastMeasurements(token!, navigation);
-      setMeasurement(measurements);
+      const data = await getLastMeasurement(token);
+      setMeasurement(data);
     } catch (error: any) {
-      if (error.cause?.status === 400) {
+      if (error.cause.status === 400) {
         navigation.navigate('CreateMeasurements');
         return;
       }
       console.log(error);
     }
-
     try {
-      const goals = await getGoals(token!, navigation);
-      setGoal(goals);
+      const data = await getGoals(token);
+      setGoal(data);
     } catch (error: any) {
-      if (error.cause?.status === 400) {
+      if (error.cause.status === 400) {
         navigation.navigate('CreateGoals');
         return;
       }
       console.log(error);
     }
+    try {
+      const data = await getDailyNorms(token);
+      setDailyNorms(data);
+    } catch (error) {
+      console.log(error);
+    }
     setLoading(false);
   };
 
-  const fetchDaily = async (date: string) => {
-    const today = date.split('T')[0];
+  const fetchDaily = async (date: Date) => {
+    const today = toISODate(date);
     try {
-      const progress = await getDailyProgress(token!, navigation, today);
-      setDailyProgress(progress);
+      const data = await getDayProgress(token, today);
+      setDayProgress(data);
     } catch (error) {
       console.log(error);
     }
 
     try {
-      const norms = await getDailyNorms(token!, navigation);
-      setDailyNorms(norms);
-    } catch (error) {
-      console.log(error);
-    }
-
-    try {
-      const food = await getFoodIntakes(token!, navigation, today);
-      setFoodIntake(food);
+      const data = await getFoodIntakes(token, today);
+      setFoodIntake(data);
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    fetchDaily(selectedDate);
+    fetchDaily(date);
     fetchData();
   }, []);
+
   if (loading) return <LoadingView />;
 
   const handleAddFood = async () => {
-    if (!selectedRecipeId) return;
+    if (!recipeId) return;
 
     try {
-      await createFoodIntake(token!, navigation, {
-        intake_time: selectedDate,
-        recipe_id: selectedRecipeId,
+      await createFoodIntake(token, {
+        intake_time: date.toISOString(),
+        recipe_id: recipeId,
         grams: Number(grams),
       });
     } catch (error) {
       console.log(error);
     }
-    fetchDaily(selectedDate);
+    fetchDaily(date);
   };
 
   const handleDeleteFood = async (id: string) => {
     try {
-      await deleteFoodIntake(token!, navigation, id);
+      await deleteFoodIntake(token, id);
       setFoodIntake((prev) => prev.filter((item: FoodIntakeData) => item.id !== id));
-      const progress = await getDailyProgress(token!, navigation, selectedDate.split('T')[0]);
-      setDailyProgress(progress);
+      const data = await getDayProgress(token, toISODate(date));
+      setDayProgress(data);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const recipeOptions = menuPlan?.menu_recipes ?? [];
+  const translateGoal = (type: string) => {
+    const map: Record<string, string> = {
+      cut: 'Снижение веса',
+      bulk: 'Набор веса',
+      maintain: 'Поддержание веса',
+    };
+    return map[type];
+  };
+  const menuRecipes = menuPlan?.menu_recipes;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
         <WeekPicker
           onDayChange={(date) => {
-            setSelectedDate(date.toISOString());
-            fetchDaily(date.toISOString());
+            setDate(date);
+            fetchDaily(date);
           }}
         />
       </View>
-      {dailyProgress && dailyNorms && (
+      {dayProgress && dailyNorms && (
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Питание за сегодня</AppText>
 
-          {/* Круговые индикаторы */}
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
             <CircularProgress
-              value={Math.min(dailyProgress.calories_progress, 100)}
+              value={Math.min(dayProgress.calories_progress, 100)}
               radius={80}
               duration={900}
               progressValueColor={colors.text}
@@ -165,34 +178,33 @@ const HomeScreen = () => {
               titleStyle={{ fontSize: 16, fontWeight: '600' }}
             />
             <AppText style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
-              {Math.round(dailyProgress.consumed_calories)} / {dailyNorms.daily_calories}
+              {Math.round(dayProgress.consumed_calories)} / {dailyNorms.daily_calories}
             </AppText>
             <AppText style={{ marginTop: 10, fontSize: 15, color: colors.textSecondary }}>
               🔥 Калории
             </AppText>
           </View>
 
-          {/* Белки, жиры, углеводы */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
             {[
               {
                 key: 'protein',
                 label: '🥩 Белки',
-                value: dailyProgress.consumed_protein,
+                value: dayProgress.consumed_protein,
                 norm: dailyNorms.daily_protein,
                 color: '#4D96FF',
               },
               {
                 key: 'fat',
                 label: '🧈 Жиры',
-                value: dailyProgress.consumed_fat,
+                value: dayProgress.consumed_fat,
                 norm: dailyNorms.daily_fat,
                 color: '#FFD93D',
               },
               {
                 key: 'carbs',
                 label: '🍞 Углеводы',
-                value: dailyProgress.consumed_carbs,
+                value: dayProgress.consumed_carbs,
                 norm: dailyNorms.daily_carbs,
                 color: '#6BCF63',
               },
@@ -219,8 +231,7 @@ const HomeScreen = () => {
             ))}
           </View>
 
-          {/* Добавление блюда */}
-          {recipeOptions && (
+          {menuRecipes && (
             <View style={{ marginTop: 20 }}>
               <AppText style={{ fontWeight: '600', marginBottom: 8 }}>Добавить блюдо</AppText>
               <View
@@ -232,9 +243,9 @@ const HomeScreen = () => {
                   marginBottom: 10,
                 }}
               >
-                <Picker selectedValue={selectedRecipeId} onValueChange={setSelectedRecipeId}>
+                <Picker selectedValue={recipeId} onValueChange={setRecipeId}>
                   <Picker.Item label='Выберите рецепт' value={null} />
-                  {recipeOptions.map((item: any) => (
+                  {menuRecipes.map((item: any) => (
                     <Picker.Item
                       key={item.recipe.id}
                       label={item.recipe.name}
@@ -263,7 +274,6 @@ const HomeScreen = () => {
         </View>
       )}
 
-      {/* Список принятой пищи */}
       {foodIntake && (
         <View style={{ marginTop: 20 }}>
           <AppText style={{ fontWeight: '600', marginBottom: 10 }}>Принято сегодня</AppText>
@@ -326,7 +336,6 @@ const HomeScreen = () => {
         </View>
       )}
 
-      {/* Измерения и цели */}
       {measurement && (
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Измерения</AppText>
@@ -357,7 +366,7 @@ const HomeScreen = () => {
           visible={updateMeasurment}
           onClose={() => setUpdateMeasurment(false)}
           measurement={measurement}
-          token={token!}
+          token={token}
           onUpdated={setMeasurement}
         />
       )}
@@ -367,7 +376,7 @@ const HomeScreen = () => {
           visible={updateGoal}
           onClose={() => setUpdateGoal(false)}
           goal={goal}
-          token={token!}
+          token={token}
           onUpdated={setGoal}
         />
       )}
@@ -376,15 +385,6 @@ const HomeScreen = () => {
 };
 
 export default HomeScreen;
-
-const translateGoal = (type: string) => {
-  const map: Record<string, string> = {
-    cut: 'Снижение веса',
-    bulk: 'Набор веса',
-    maintain: 'Поддержание веса',
-  };
-  return map[type];
-};
 
 const styles = StyleSheet.create({
   loader: {

@@ -1,7 +1,6 @@
 import { updateGoals } from '@/api/goals';
+import { toISODate } from '@/hooks/useDate';
 import { colors, spacing } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -12,34 +11,28 @@ import ChoiceButton from './ChoiceButton';
 
 interface Props {
   visible: boolean;
-  onClose: () => void;
   goal: any;
-  token: string;
+  token: string | null;
+  onClose: () => void;
   onUpdated: (data: any) => void;
 }
 
-const UpdateGoals = ({ visible, onClose, goal, token, onUpdated }: Props) => {
-  const navigation = useNavigation<ScreenNavigationProp>();
-
+const UpdateGoals = ({ visible, goal, token, onClose, onUpdated }: Props) => {
   const [type, setType] = useState<'cut' | 'bulk' | 'maintain'>(goal.type);
-  const [targetWeight, setTargetWeight] = useState(String(goal.target_weight));
-  const [startAt, setStartAt] = useState(new Date(goal.start_at));
-  const [endAt, setEndAt] = useState(new Date(goal.end_at));
+  const [targetWeight, setTargetWeight] = useState<string>(String(goal.target_weight));
+  const [startAt, setStartAt] = useState<Date>(new Date(goal.start_at));
+  const [endAt, setEndAt] = useState<Date>(new Date(goal.end_at));
   const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
   const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
 
   const handleSave = async () => {
     try {
-      const result = await updateGoals(
-        token,
-        {
-          type,
-          target_weight: Number(targetWeight),
-          start_at: startAt.toISOString(),
-          end_at: endAt.toISOString(),
-        },
-        navigation
-      );
+      const result = await updateGoals(token, {
+        type,
+        target_weight: Number(targetWeight),
+        start_at: toISODate(startAt),
+        end_at: toISODate(endAt),
+      });
       onUpdated(result);
       onClose();
     } catch (error) {

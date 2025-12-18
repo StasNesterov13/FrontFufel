@@ -1,11 +1,8 @@
 import { API_BASE_URL } from '@/constants/config';
 import { MeasurementData } from '@/types/data';
-import { ScreenNavigationProp } from '@/types/navigation';
 
-// Создать измерение
 export const createMeasurements = async (
-  token: string,
-  navigation: ScreenNavigationProp,
+  token: string | null,
   measurementData: MeasurementData
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/`, {
@@ -18,10 +15,6 @@ export const createMeasurements = async (
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }
@@ -29,7 +22,7 @@ export const createMeasurements = async (
   return await response.json();
 };
 
-export const getMeasurements = async (token: string, navigation: ScreenNavigationProp) => {
+export const getAllMeasurements = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/`, {
     method: 'GET',
     headers: {
@@ -38,10 +31,6 @@ export const getMeasurements = async (token: string, navigation: ScreenNavigatio
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, {
       cause: {
@@ -53,8 +42,7 @@ export const getMeasurements = async (token: string, navigation: ScreenNavigatio
   return await response.json();
 };
 
-// Получить измерения
-export const getLastMeasurements = async (token: string, navigation: ScreenNavigationProp) => {
+export const getLastMeasurement = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/latest`, {
     method: 'GET',
     headers: {
@@ -63,10 +51,6 @@ export const getLastMeasurements = async (token: string, navigation: ScreenNavig
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, {
       cause: {
@@ -78,11 +62,9 @@ export const getLastMeasurements = async (token: string, navigation: ScreenNavig
   return await response.json();
 };
 
-// Обновить измерение (частично)
 export const updateMeasurements = async (
-  token: string,
-  measurementData: Partial<MeasurementData>,
-  navigation: ScreenNavigationProp
+  token: string | null,
+  measurementData: MeasurementData
 ) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/measurements/`, {
     method: 'PATCH',
@@ -94,10 +76,6 @@ export const updateMeasurements = async (
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }

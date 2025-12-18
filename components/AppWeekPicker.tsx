@@ -10,9 +10,8 @@ const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const screenWidth = Dimensions.get('window').width;
 
 const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [date, setDate] = useState(new Date());
 
-  // Получаем дату Пн текущей недели
   const getWeekStart = (date: Date) => {
     const day = date.getDay();
     const diff = day === 0 ? -6 : 1 - day;
@@ -21,7 +20,7 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
     return monday;
   };
 
-  const weekStart = getWeekStart(selectedDate);
+  const weekStart = getWeekStart(date);
 
   const weekDates = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(weekStart);
@@ -30,11 +29,11 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
   });
 
   const handlePress = (date: Date) => {
-    setSelectedDate(date);
+    setDate(date);
     onDayChange && onDayChange(date);
   };
 
-  const dayWidth = Math.floor((screenWidth - spacing.lg * 2) / 7);
+  const dayWidth = Math.floor((screenWidth - spacing.lg * 4) / 7);
 
   return (
     <View style={styles.container}>
@@ -45,7 +44,7 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
         keyExtractor={(item) => item.toDateString()}
         contentContainerStyle={{ paddingHorizontal: spacing.md }}
         renderItem={({ item }) => {
-          const isSelected = item.toDateString() === selectedDate.toDateString();
+          const isSelected = item.toDateString() === date.toDateString();
           const dayLabel = daysOfWeek[item.getDay() === 0 ? 6 : item.getDay() - 1];
 
           return (

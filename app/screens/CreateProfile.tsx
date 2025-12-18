@@ -3,11 +3,11 @@ import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
 import ChoiceButton from '@/components/ChoiceButton';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { toISODate } from '@/hooks/useDate';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -19,11 +19,11 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateProfileScreen = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token, logoutToken } = useAuth();
+  const navigation = useAppNavigation();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
   const [dietType, setDietType] = useState<
     'vegan' | 'vegetarian' | 'pescatarian' | 'halal' | 'kosher' | 'default'
   >('default');
@@ -33,23 +33,19 @@ const CreateProfileScreen = () => {
   >('moderate');
   const [height, setHeight] = useState('170');
   const [birthDate, setBirthDate] = useState(new Date());
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     try {
-      await createProfile(
-        token!,
-        {
-          first_name: firstName,
-          last_name: lastName,
-          gender: gender!,
-          birth_date: birthDate.toISOString().split('T')[0],
-          height: Number(height),
-          activity_level: activityLevel!,
-          diet_type: dietType!,
-        },
-        navigation
-      );
+      await createProfile(token!, {
+        first_name: firstName,
+        last_name: lastName,
+        gender: gender,
+        birth_date: toISODate(birthDate),
+        height: Number(height),
+        activity_level: activityLevel,
+        diet_type: dietType,
+      });
       navigation.navigate('CreateMeasurements');
     } catch (error) {
       console.log(error);
@@ -173,7 +169,7 @@ const CreateProfileScreen = () => {
         <AppText
           style={styles.logout}
           onPress={() => {
-            logout();
+            logoutToken();
             navigation.navigate('Login');
           }}
         >

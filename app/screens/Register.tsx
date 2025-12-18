@@ -2,11 +2,10 @@ import { registerUser } from '@/api/users';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -16,8 +15,8 @@ import {
 } from 'react-native';
 
 const RegisterScreen = () => {
-  const { login } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { loginToken } = useAuth();
+  const navigation = useAppNavigation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +24,8 @@ const RegisterScreen = () => {
 
   const handleRegister = async () => {
     try {
-      const data = await registerUser(email, password);
-      await login(data.access_token);
+      const data = await registerUser({ email: email, password: password });
+      await loginToken(data.access_token);
       navigation.navigate('CreateProfile');
     } catch (error) {
       console.log(error);

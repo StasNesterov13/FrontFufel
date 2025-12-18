@@ -1,7 +1,6 @@
 import { API_BASE_URL } from '@/constants/config';
-import { ScreenNavigationProp } from '@/types/navigation';
 
-export const getDailyNorms = async (token: string, navigation: ScreenNavigationProp) => {
+export const getDailyNorms = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/daily-norms/`, {
     method: 'GET',
     headers: {
@@ -10,11 +9,6 @@ export const getDailyNorms = async (token: string, navigation: ScreenNavigationP
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
-
     const error = await response.text();
     throw new Error(error, {
       cause: { status: response.status },
@@ -24,7 +18,7 @@ export const getDailyNorms = async (token: string, navigation: ScreenNavigationP
   return await response.json();
 };
 
-export const recalculateDailyNorms = async (token: string, navigation: ScreenNavigationProp) => {
+export const recalculateDailyNorms = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/daily-norms/recalculate`, {
     method: 'POST',
     headers: {
@@ -33,11 +27,6 @@ export const recalculateDailyNorms = async (token: string, navigation: ScreenNav
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
-
     const error = await response.text();
     throw new Error(error);
   }
@@ -45,13 +34,10 @@ export const recalculateDailyNorms = async (token: string, navigation: ScreenNav
   return await response.json();
 };
 
-export const getDailyProgress = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  target_date: string
-) => {
-  const query = new URLSearchParams(target_date);
-  query.append('target_date', target_date);
+export const getDayProgress = async (token: string | null, target_date: string) => {
+  const query = new URLSearchParams({
+    target_date: target_date,
+  }).toString();
 
   const response = await fetch(`${API_BASE_URL}/api/v1/daily-norms/progress?${query}`, {
     method: 'GET',
@@ -61,11 +47,6 @@ export const getDailyProgress = async (
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
-
     const error = await response.text();
     throw new Error(error);
   }

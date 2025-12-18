@@ -1,16 +1,16 @@
 import { API_BASE_URL } from '@/constants/config';
-import { FoodIntakeDataAPI } from '@/types/dataAPI';
-import { ScreenNavigationProp } from '@/types/navigation';
-
-export const getFoodIntakes = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  target_date: string
-) => {
+export interface FoodIntakeData {
+  intake_time: string;
+  grams: number;
+  recipe_id?: number;
+  name?: string;
+  calories?: number;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
+}
+export const getFoodIntakes = async (token: string | null, target_date: string) => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const formData = new URLSearchParams();
-  formData.append('target_date', target_date);
-  formData.append('timezone', timezone);
   const response = await fetch(
     `${API_BASE_URL}/api/v1/food-intakes/?target_date=${target_date}&timezone=${timezone}`,
     {
@@ -22,10 +22,6 @@ export const getFoodIntakes = async (
   );
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, { cause: { status: response.status } });
   }
@@ -33,11 +29,7 @@ export const getFoodIntakes = async (
   return await response.json();
 };
 
-export const createFoodIntake = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  foodIntakeData: FoodIntakeDataAPI
-) => {
+export const createFoodIntake = async (token: string | null, foodIntakeData: FoodIntakeData) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/food-intakes/`, {
     method: 'POST',
     headers: {
@@ -48,10 +40,6 @@ export const createFoodIntake = async (
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, { cause: { status: response.status } });
   }
@@ -60,10 +48,9 @@ export const createFoodIntake = async (
 };
 
 export const updateFoodIntake = async (
-  token: string,
-  navigation: ScreenNavigationProp,
+  token: string | null,
   foodIntakeId: number,
-  foodIntakeData: FoodIntakeDataAPI
+  foodIntakeData: FoodIntakeData
 ) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/food-intakes/?food_intake_id=${foodIntakeId}`,
@@ -78,10 +65,6 @@ export const updateFoodIntake = async (
   );
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, { cause: { status: response.status } });
   }
@@ -89,11 +72,7 @@ export const updateFoodIntake = async (
   return await response.json();
 };
 
-export const deleteFoodIntake = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  foodIntakeId: string
-) => {
+export const deleteFoodIntake = async (token: string | null, foodIntakeId: string) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/food-intakes/?food_intake_id=${foodIntakeId}`,
     {
@@ -105,10 +84,6 @@ export const deleteFoodIntake = async (
   );
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, { cause: { status: response.status } });
   }

@@ -4,8 +4,8 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-nat
 
 interface Props {
   title: string;
-  onPress: () => void;
   loading?: boolean;
+  onPress: () => void;
 }
 
 const AppButton = ({ title, onPress, loading = false }: Props) => (

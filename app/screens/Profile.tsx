@@ -2,33 +2,67 @@ import { getProfile } from '@/api/profiles';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useEffect, useState } from 'react';
+import { ProfileData } from '@/types/data';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 const ProfileScreen = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
-  const [profile, setProfile] = useState<any>(null);
+  const { token, logoutToken } = useAuth();
+  const navigation = useAppNavigation();
+  const [profile, setProfile] = useState<ProfileData>();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await getProfile(token!, navigation);
+        const data = await getProfile(token);
         setProfile(data);
       } catch (error: any) {
-        if (error.cause?.status === 400) {
+        if (error.cause.status === 400) {
           navigation.navigate('CreateProfile');
           return;
+        } else if (error.cause.status === 401) {
+          navigation.navigate('Login');
+          return;
         }
-        console.log(error?.status ?? error);
+        console.log(error);
       }
     };
     fetchProfile();
   }, []);
+
+  const translateLevelActivity = (levelActivity: string) => {
+    const map: Record<string, string> = {
+      minimal: 'Минимальный',
+      light: 'Легкий',
+      moderate: 'Средний',
+      high: 'Высокий',
+      very_high: 'Очень высокий',
+    };
+    return map[levelActivity];
+  };
+
+  const translateDietType = (dietType: string) => {
+    const map: Record<string, string> = {
+      vegan: 'Веганская',
+      vegetarian: 'Вегетарианская',
+      pescatarian: 'Пескетарианство',
+      halal: 'Халяль',
+      kosher: 'Кошер',
+      default: 'Обычная',
+    };
+    return map[dietType];
+  };
+
+  const translateGender = (gender: string) => {
+    const map: Record<string, string> = {
+      male: 'Мужской',
+      female: 'Женский',
+    };
+    return map[gender];
+  };
 
   if (!profile) {
     return (
@@ -37,7 +71,7 @@ const ProfileScreen = () => {
         <AppText
           style={styles.logout}
           onPress={() => {
-            logout();
+            logoutToken();
             navigation.navigate('Login');
           }}
         >
@@ -50,11 +84,11 @@ const ProfileScreen = () => {
   const profileRows = [
     { label: 'Имя', value: profile.first_name },
     { label: 'Фамилия', value: profile.last_name },
-    { label: 'Пол', value: profile.gender === 'male' ? 'Мужской' : 'Женский' },
+    { label: 'Пол', value: translateGender(profile.gender) },
     { label: 'Дата рождения', value: new Date(profile.birth_date).toLocaleDateString('ru-RU') },
     { label: 'Рост', value: `${profile.height} см` },
-    { label: 'Уровень активности', value: translateActivity(profile.activity_level) },
-    { label: 'Тип диеты', value: translateDiet(profile.diet_type) },
+    { label: 'Уровень активности', value: translateLevelActivity(profile.activity_level) },
+    { label: 'Тип диеты', value: translateDietType(profile.diet_type) },
   ];
 
   return (
@@ -69,7 +103,7 @@ const ProfileScreen = () => {
       <AppText
         style={styles.logout}
         onPress={() => {
-          logout();
+          logoutToken();
           navigation.navigate('Login');
         }}
       >
@@ -77,29 +111,6 @@ const ProfileScreen = () => {
       </AppText>
     </ScrollView>
   );
-};
-
-const translateActivity = (level: string) => {
-  const map: Record<string, string> = {
-    minimal: 'Минимальный',
-    light: 'Легкий',
-    moderate: 'Средний',
-    high: 'Высокий',
-    very_high: 'Очень высокий',
-  };
-  return map[level];
-};
-
-const translateDiet = (diet: string) => {
-  const map: Record<string, string> = {
-    vegan: 'Веганская',
-    vegetarian: 'Вегетарианская',
-    pescatarian: 'Пескетарианство',
-    halal: 'Халяль',
-    kosher: 'Кошер',
-    default: 'Обычная',
-  };
-  return map[diet];
 };
 
 export default ProfileScreen;

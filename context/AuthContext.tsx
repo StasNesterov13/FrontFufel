@@ -5,15 +5,15 @@ import React, { createContext, useEffect, useState } from 'react';
 interface AuthContextType {
   token: string | null;
   loading: boolean;
-  login: (newToken: string) => Promise<void>;
-  logout: () => Promise<void>;
+  loginToken: (newToken: string) => Promise<void>;
+  logoutToken: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   token: null,
   loading: true,
-  login: async () => {},
-  logout: async () => {},
+  loginToken: async () => {},
+  logoutToken: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadToken();
   }, []);
 
-  const login = async (newToken: string) => {
+  const loginToken = async (newToken: string) => {
     try {
       await SecureStore.setItemAsync('token', newToken);
       setToken(newToken);
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logoutToken = async () => {
     try {
       await SecureStore.deleteItemAsync('token');
       setToken(null);
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, loading, login, logout }}>
+    <AuthContext.Provider value={{ token, loading, loginToken, logoutToken }}>
       {loading ? <LoadingView /> : children}
     </AuthContext.Provider>
   );

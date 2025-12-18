@@ -2,11 +2,11 @@ import { createMeasurements } from '@/api/measurements';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { toISODate } from '@/hooks/useDate';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -17,27 +17,23 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateMeasurementsScreen = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token, logoutToken } = useAuth();
+  const navigation = useAppNavigation();
 
-  const [weight, setWeight] = useState('70');
-  const [bodyfat, setBodyfat] = useState('15');
-  const [notes, setNotes] = useState('');
-  const [measuredAt, setMeasuredAt] = useState(new Date());
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [weight, setWeight] = useState<string>('70');
+  const [bodyfat, setBodyfat] = useState<string>('15');
+  const [notes, setNotes] = useState<string>('');
+  const [measuredAt, setMeasuredAt] = useState<Date>(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     try {
-      await createMeasurements(
-        token!,
-        {
-          measured_at: measuredAt.toISOString().split('T')[0],
-          weight: Number(weight),
-          bodyfat: Number(bodyfat),
-          notes,
-        },
-        navigation
-      );
+      await createMeasurements(token, {
+        measured_at: toISODate(measuredAt),
+        weight: Number(weight),
+        bodyfat: Number(bodyfat),
+        notes,
+      });
       navigation.navigate('CreateGoals');
     } catch (error) {
       console.log(error);
@@ -99,7 +95,7 @@ const CreateMeasurementsScreen = () => {
         <AppText
           style={styles.logout}
           onPress={() => {
-            logout();
+            logoutToken();
             navigation.navigate('Login');
           }}
         >

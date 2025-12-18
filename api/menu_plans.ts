@@ -1,27 +1,21 @@
 import { API_BASE_URL } from '@/constants/config';
-import { MenuPlanDataAPI } from '@/types/dataAPI';
-import { ScreenNavigationProp } from '@/types/navigation';
 
-// Создать меню-план
-export const createMenuPlan = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  menuData: MenuPlanDataAPI
-) => {
+export interface MenuPlanData {
+  start_date: string;
+  end_date: string;
+}
+
+export const createMenuPlan = async (token: string | null, menuPlanData: MenuPlanData) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(menuData),
+    body: JSON.stringify(menuPlanData),
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }
@@ -29,8 +23,7 @@ export const createMenuPlan = async (
   return await response.json();
 };
 
-// Получить меню-план
-export const getMenuPlan = async (token: string, navigation: ScreenNavigationProp) => {
+export const getMenuPlan = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
     method: 'GET',
     headers: {
@@ -40,10 +33,6 @@ export const getMenuPlan = async (token: string, navigation: ScreenNavigationPro
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }
@@ -51,8 +40,7 @@ export const getMenuPlan = async (token: string, navigation: ScreenNavigationPro
   return await response.json();
 };
 
-// Удалить меню-план
-export const deleteMenuPlan = async (token: string, navigation: ScreenNavigationProp) => {
+export const deleteMenuPlan = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
     method: 'DELETE',
     headers: {
@@ -61,10 +49,6 @@ export const deleteMenuPlan = async (token: string, navigation: ScreenNavigation
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }
@@ -72,12 +56,7 @@ export const deleteMenuPlan = async (token: string, navigation: ScreenNavigation
   return await response.json();
 };
 
-// Заменить рецепт
-export const replaceRecipe = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  recipeId: number
-) => {
+export const updateMenuPlan = async (token: string | null, recipeId: number) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/menu-plans/replace-recipe?recipe_id=${recipeId}`,
     {
@@ -90,10 +69,6 @@ export const replaceRecipe = async (
   );
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }

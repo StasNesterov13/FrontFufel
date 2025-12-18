@@ -1,13 +1,13 @@
-import { createMenuPlan, deleteMenuPlan, getMenuPlan, replaceRecipe } from '@/api/menu_plans';
+import { createMenuPlan, deleteMenuPlan, getMenuPlan, updateMenuPlan } from '@/api/menu_plans';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
 import { Ingredient, MenuItem, MenuPlanData } from '@/types/data';
 import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 const daysOfWeek = [
@@ -21,16 +21,16 @@ const daysOfWeek = [
 ];
 
 const MenuScreen = () => {
-  const { token } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token } = useAuth();
+  const navigation = useAppNavigation();
   const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
-  const [creating, setCreating] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [creating, setCreating] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMenuPlan = async () => {
       try {
-        const data = await getMenuPlan(token!, navigation);
+        const data = await getMenuPlan(token);
         setMenuPlan(data);
       } catch (error) {
         console.log(error);
@@ -42,11 +42,11 @@ const MenuScreen = () => {
   const handleCreatePlan = async () => {
     try {
       setCreating(true);
-      await createMenuPlan(token!, navigation, {
+      await createMenuPlan(token!, {
         start_date: '2025-11-06',
         end_date: '2025-11-13',
       });
-      const data = await getMenuPlan(token!, navigation);
+      const data = await getMenuPlan(token);
       setMenuPlan(data);
     } catch (error) {
       console.log(error);
@@ -58,7 +58,7 @@ const MenuScreen = () => {
   const handleDeletePlan = async () => {
     try {
       setDeleting(true);
-      await deleteMenuPlan(token!, navigation);
+      await deleteMenuPlan(token);
     } catch (error) {
       console.log(error);
     } finally {
@@ -72,7 +72,7 @@ const MenuScreen = () => {
     navigation: ScreenNavigationProp
   ) => {
     try {
-      const newRecipe = await replaceRecipe(token, navigation, item.recipe.id);
+      const newRecipe = await updateMenuPlan(token, item.recipe.id);
       setMenuPlan((prev) => {
         if (!prev) return prev;
         return {
@@ -98,7 +98,6 @@ const MenuScreen = () => {
     );
   }
 
-  // Группировка по дню недели
   const grouped: Record<number, MenuItem[]> = {};
   menuPlan.menu_recipes.forEach((item) => {
     if (!grouped[item.day_of_week]) grouped[item.day_of_week] = [];

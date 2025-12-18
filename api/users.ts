@@ -1,9 +1,11 @@
 import { API_BASE_URL } from '@/constants/config';
-export const registerUser = async (email: string | null, password: string | null) => {
+import { UserData } from '@/types/data';
+
+export const registerUser = async (userData: UserData) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/users/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, password: password }),
+    body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
@@ -14,7 +16,7 @@ export const registerUser = async (email: string | null, password: string | null
   return await response.json();
 };
 
-export const getUser = async (token: string) => {
+export const getUser = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
     method: 'GET',
     headers: {

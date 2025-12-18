@@ -4,11 +4,11 @@ import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
 import ChoiceButton from '@/components/ChoiceButton';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { toISODate } from '@/hooks/useDate';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -20,30 +20,26 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateGoalsScreen = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
+  const { token, logoutToken } = useAuth();
+  const navigation = useAppNavigation();
 
   const [type, setType] = useState<'cut' | 'bulk' | 'maintain'>('maintain');
-  const [targetWeight, setTargetWeight] = useState('75');
-  const [startAt, setStartAt] = useState(new Date());
-  const [endAt, setEndAt] = useState(new Date());
+  const [targetWeight, setTargetWeight] = useState<string>('75');
+  const [startAt, setStartAt] = useState<Date>(new Date());
+  const [endAt, setEndAt] = useState<Date>(new Date());
 
   const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
   const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
 
   const handleSubmit = async () => {
     try {
-      await createGoals(
-        token!,
-        {
-          type,
-          target_weight: Number(targetWeight),
-          start_at: startAt.toISOString().split('T')[0],
-          end_at: endAt.toISOString().split('T')[0],
-        },
-        navigation
-      );
-      await recalculateDailyNorms(token!, navigation);
+      await createGoals(token, {
+        type,
+        target_weight: Number(targetWeight),
+        start_at: toISODate(startAt),
+        end_at: toISODate(endAt),
+      });
+      await recalculateDailyNorms(token);
       navigation.navigate('Tabs');
     } catch (error) {
       console.log(error);
@@ -122,7 +118,7 @@ const CreateGoalsScreen = () => {
         <AppText
           style={styles.logout}
           onPress={() => {
-            logout();
+            logoutToken();
             navigation.navigate('Login');
           }}
         >

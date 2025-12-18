@@ -1,21 +1,7 @@
 import { API_BASE_URL } from '@/constants/config';
-import { ScreenNavigationProp } from '@/types/navigation';
+import { ProfileData } from '@/types/data';
 
-export interface ProfileData {
-  first_name: string;
-  last_name: string;
-  gender: string;
-  birth_date: string;
-  height: number;
-  activity_level: string;
-  diet_type: string;
-}
-
-export const createProfile = async (
-  token: string,
-  navigation: ScreenNavigationProp,
-  profileData: ProfileData
-) => {
+export const createProfile = async (token: string | null, profileData: ProfileData) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
     method: 'POST',
     headers: {
@@ -26,10 +12,6 @@ export const createProfile = async (
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error);
   }
@@ -37,7 +19,25 @@ export const createProfile = async (
   return await response.json();
 };
 
-export const getProfile = async (token: string, navigation: ScreenNavigationProp) => {
+export const updateProfile = async (token: string | null, profileData: ProfileData) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(profileData),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+
+  return await response.json();
+};
+
+export const getProfile = async (token: string | null) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/profiles/`, {
     method: 'GET',
     headers: {
@@ -47,10 +47,6 @@ export const getProfile = async (token: string, navigation: ScreenNavigationProp
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      navigation.navigate('Login');
-      return;
-    }
     const error = await response.text();
     throw new Error(error, {
       cause: {

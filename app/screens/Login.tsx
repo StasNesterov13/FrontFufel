@@ -1,12 +1,11 @@
-import { loginUser } from '@/api/auth';
+import { login } from '@/api/auth';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import { ScreenNavigationProp } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -16,17 +15,17 @@ import {
 } from 'react-native';
 
 const LoginScreen = () => {
-  const { login } = useContext(AuthContext);
-  const navigation = useNavigation<ScreenNavigationProp>();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { loginToken } = useAuth();
+  const navigation = useAppNavigation();
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
   const handleLogin = async () => {
     try {
-      const data = await loginUser(email, password, navigation);
-      await login(data.access_token);
+      const data = await login(email, password);
+      await loginToken(data.access_token);
       navigation.navigate('Tabs');
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
     }
   };
