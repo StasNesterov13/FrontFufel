@@ -1,9 +1,9 @@
 import { colors, spacing } from '@/theme';
 import React, { useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface WeekPickerProps {
-  onDayChange?: (date: Date) => void;
+  onDayChange: (date: Date) => void;
 }
 
 const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -37,20 +37,17 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={weekDates}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.toDateString()}
-        contentContainerStyle={{ paddingHorizontal: spacing.md }}
-        renderItem={({ item }) => {
+      <View style={styles.weekWrapper}>
+        {weekDates.map((item) => {
           const isSelected = item.toDateString() === date.toDateString();
           const dayLabel = daysOfWeek[item.getDay() === 0 ? 6 : item.getDay() - 1];
 
           return (
             <TouchableOpacity
-              style={[styles.dayButton, { width: dayWidth }, isSelected && styles.selectedDay]}
+              key={item.toDateString()}
+              style={[styles.dayButton, isSelected && styles.selectedDay]}
               onPress={() => handlePress(item)}
+              activeOpacity={0.7}
             >
               <Text style={[styles.dayText, isSelected && styles.selectedText]}>{dayLabel}</Text>
               <Text style={[styles.dateText, isSelected && styles.selectedText]}>
@@ -58,8 +55,8 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
               </Text>
             </TouchableOpacity>
           );
-        }}
-      />
+        })}
+      </View>
     </View>
   );
 };
@@ -67,17 +64,28 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
 export default WeekPicker;
 
 const styles = StyleSheet.create({
-  container: { marginVertical: spacing.md },
-  dayButton: {
-    paddingVertical: spacing.sm,
-    marginHorizontal: spacing.xs / 2,
+  container: {
+    marginVertical: spacing.md,
+    alignItems: 'center', // центрируем рамку по горизонтали
+  },
+  weekWrapper: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: colors.border, // рамка вокруг всей недели
     borderRadius: 12,
-    backgroundColor: colors.background,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  dayButton: {
     alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 8,
   },
   selectedDay: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
+    backgroundColor: colors.primaryLight,
   },
   dayText: {
     fontSize: 14,
@@ -90,5 +98,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
   },
-  selectedText: { color: colors.white },
+  selectedText: {
+    color: colors.primaryDark,
+  },
 });

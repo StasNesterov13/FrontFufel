@@ -8,6 +8,8 @@ const colors = {
   border: '#ccc',
   error: '#e74c3c',
   surface: '#fff',
+  primaryLight: '#D0E4FF',
+  primaryDark: '#1A73E8',
 };
 
 export default colors;

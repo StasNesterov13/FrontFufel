@@ -3,10 +3,8 @@ import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
 import { Ingredient, MenuItem, MenuPlanData } from '@/types/data';
-import { ScreenNavigationProp } from '@/types/navigation';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -22,10 +20,14 @@ const daysOfWeek = [
 
 const MenuScreen = () => {
   const { token } = useAuth();
-  const navigation = useAppNavigation();
   const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [creating, setCreating] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
+  const mealTypes = [
+    { label: 'Завтрак', value: 'breakfast' },
+    { label: 'Обед', value: 'dinner' },
+    { label: 'Ужин', value: 'maintain' },
+  ];
 
   useEffect(() => {
     const fetchMenuPlan = async () => {
@@ -66,18 +68,14 @@ const MenuScreen = () => {
     }
   };
 
-  const handleReplaceRecipe = async (
-    item: MenuItem,
-    token: string,
-    navigation: ScreenNavigationProp
-  ) => {
+  const handleUpdateMenuPlan = async (item: MenuItem, token: string | null) => {
     try {
       const newRecipe = await updateMenuPlan(token, item.recipe.id);
       setMenuPlan((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          menu_recipes: prev.menu_recipes.map((mi) =>
+          menu_recipes: prev?.menu_recipes.map((mi) =>
             mi.recipe.id === item.recipe.id ? { ...mi, recipe: newRecipe } : mi
           ),
         };
@@ -87,6 +85,7 @@ const MenuScreen = () => {
     }
   };
 
+  const getMealTypeLabel = (value: string) => mealTypes.find((m) => m.value === value)?.label;
   if (!menuPlan) {
     return (
       <View style={styles.loader}>
@@ -130,7 +129,9 @@ const MenuScreen = () => {
             {recipes.map((item: MenuItem) => (
               <View key={item.recipe.id} style={styles.recipeBlock}>
                 <AppText style={styles.recipeName}>{item.recipe.name}</AppText>
-                <AppText style={styles.mealType}>Приём пищи: {item.meal_type}</AppText>
+                <AppText style={styles.mealType}>
+                  Приём пищи: {getMealTypeLabel(item.meal_type)}
+                </AppText>
 
                 <View style={styles.ingredientsBlock}>
                   <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
@@ -143,7 +144,7 @@ const MenuScreen = () => {
 
                 <AppButton
                   title='Заменить рецепт'
-                  onPress={() => handleReplaceRecipe(item, token!, navigation)}
+                  onPress={() => handleUpdateMenuPlan(item, token)}
                 />
               </View>
             ))}

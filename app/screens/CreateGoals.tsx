@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
 import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -22,15 +22,31 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const CreateGoalsScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
-
-  const [type, setType] = useState<'cut' | 'bulk' | 'maintain'>('maintain');
+  const goalTypes = [
+    { label: 'Снижение веса', value: 'cut' },
+    { label: 'Набор веса', value: 'bulk' },
+    { label: 'Поддержание веса', value: 'maintain' },
+  ];
+  const [type, setType] = useState<string>('');
+  //const [goalTypes, setGoalTypes] = useState<{ label: string; value: string }[]>([]);
   const [targetWeight, setTargetWeight] = useState<string>('75');
   const [startAt, setStartAt] = useState<Date>(new Date());
   const [endAt, setEndAt] = useState<Date>(new Date());
 
   const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
   const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
+  useEffect(() => {
+    const fetchGoalTypes = async () => {
+      try {
+        // запрос к API
+        // дефолтное значение
+      } catch (err) {
+        console.log(err);
+      }
+    };
 
+    fetchGoalTypes();
+  }, []);
   const handleSubmit = async () => {
     try {
       await createGoals(token, {
@@ -53,21 +69,14 @@ const CreateGoalsScreen = () => {
 
         <AppText style={styles.label}>Тип цели</AppText>
         <View style={styles.row}>
-          <ChoiceButton
-            label='Снижение веса'
-            selected={type === 'cut'}
-            onPress={() => setType('cut')}
-          />
-          <ChoiceButton
-            label='Набор веса'
-            selected={type === 'bulk'}
-            onPress={() => setType('bulk')}
-          />
-          <ChoiceButton
-            label='Поддержание веса'
-            selected={type === 'maintain'}
-            onPress={() => setType('maintain')}
-          />
+          {goalTypes.map((g) => (
+            <ChoiceButton
+              key={g.value}
+              label={g.label}
+              selected={type === g.value}
+              onPress={() => setType(g.value)}
+            />
+          ))}
         </View>
 
         <AppText style={styles.label}>Целевой вес (кг)</AppText>

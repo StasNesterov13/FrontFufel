@@ -31,7 +31,12 @@ import CircularProgress from 'react-native-circular-progress-indicator';
 const HomeScreen = () => {
   const { token } = useAuth();
   const navigation = useAppNavigation();
-
+  const goalTypes = [
+    { label: 'Снижение веса', value: 'cut' },
+    { label: 'Набор веса', value: 'bulk' },
+    { label: 'Поддержание веса', value: 'maintain' },
+  ];
+  //const [goalTypes, setGoalTypes] = useState<{ label: string; value: string }[]>([]);
   const [measurement, setMeasurement] = useState<MeasurementData>();
   const [goal, setGoal] = useState<GoalData>();
   const [dayProgress, setDayProgress] = useState<DayProgressData>();
@@ -86,6 +91,12 @@ const HomeScreen = () => {
     } catch (error) {
       console.log(error);
     }
+    try {
+      // твой API запрос
+      // по умолчанию первый
+    } catch (err) {
+      console.log(err);
+    }
     setLoading(false);
   };
 
@@ -139,14 +150,7 @@ const HomeScreen = () => {
     }
   };
 
-  const translateGoal = (type: string) => {
-    const map: Record<string, string> = {
-      cut: 'Снижение веса',
-      bulk: 'Набор веса',
-      maintain: 'Поддержание веса',
-    };
-    return map[type];
-  };
+  const getGoalTypeLabel = (value: string) => goalTypes.find((g) => g.value === value)?.label ?? '';
   const menuRecipes = menuPlan?.menu_recipes;
 
   return (
@@ -353,7 +357,7 @@ const HomeScreen = () => {
       {goal && (
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Цели</AppText>
-          <AppRow label='Тип цели' value={translateGoal(goal.type)} />
+          <AppRow label='Тип цели' value={getGoalTypeLabel(goal.type)} />
           <AppRow label='Целевой вес' value={`${goal.target_weight} кг`} />
           <AppRow label='Начало' value={new Date(goal.start_at).toLocaleDateString('ru-RU')} />
           <AppRow label='Конец' value={new Date(goal.end_at).toLocaleDateString('ru-RU')} />

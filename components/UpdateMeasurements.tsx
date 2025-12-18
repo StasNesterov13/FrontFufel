@@ -31,6 +31,7 @@ const UpdateMeasurements = ({ visible, measurement, token, onClose, onUpdated }:
         bodyfat: Number(bodyfat),
         notes,
       });
+      console.log(result);
       onUpdated(result);
       onClose();
     } catch (error) {

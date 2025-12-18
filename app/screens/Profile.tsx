@@ -13,6 +13,28 @@ const ProfileScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
   const [profile, setProfile] = useState<ProfileData>();
+  //const [activityLevels, setActivityLevels] = useState<{ label: string; value: string }[]>([]);
+  //const [dietTypes, setDietTypes] = useState<{ label: string; value: string }[]>([]);
+  const activityLevels = [
+    { label: 'Минимальный', value: 'minimal' },
+    { label: 'Лёгкий', value: 'light' },
+    { label: 'Средний', value: 'moderate' },
+    { label: 'Высокий', value: 'high' },
+    { label: 'Очень высокий', value: 'very_high' },
+  ];
+  const dietTypes = [
+    { label: 'Веганская', value: 'vegan' },
+    { label: 'Вегетарианская', value: 'vegetarian' },
+    { label: 'Пескетарианство', value: 'pescatarian' },
+    { label: 'Халяль', value: 'halal' },
+    { label: 'Кошер', value: 'kosher' },
+    { label: 'Обычная', value: 'default' },
+  ];
+
+  const genders = [
+    { label: 'Мужской', value: 'male' },
+    { label: 'Женский', value: 'female' },
+  ];
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,40 +51,26 @@ const ProfileScreen = () => {
         }
         console.log(error);
       }
+      try {
+        // твой API запрос
+        // по умолчанию первый
+      } catch (err) {
+        console.log(err);
+      }
+      try {
+        // твой API запрос
+        // по умолчанию первый
+      } catch (err) {
+        console.log(err);
+      }
     };
     fetchProfile();
   }, []);
 
-  const translateLevelActivity = (levelActivity: string) => {
-    const map: Record<string, string> = {
-      minimal: 'Минимальный',
-      light: 'Легкий',
-      moderate: 'Средний',
-      high: 'Высокий',
-      very_high: 'Очень высокий',
-    };
-    return map[levelActivity];
-  };
-
-  const translateDietType = (dietType: string) => {
-    const map: Record<string, string> = {
-      vegan: 'Веганская',
-      vegetarian: 'Вегетарианская',
-      pescatarian: 'Пескетарианство',
-      halal: 'Халяль',
-      kosher: 'Кошер',
-      default: 'Обычная',
-    };
-    return map[dietType];
-  };
-
-  const translateGender = (gender: string) => {
-    const map: Record<string, string> = {
-      male: 'Мужской',
-      female: 'Женский',
-    };
-    return map[gender];
-  };
+  const getActivityLevelLabel = (value: string) =>
+    activityLevels.find((a) => a.value === value)?.label || '';
+  const getDietTypeLabel = (value: string) => dietTypes.find((d) => d.value === value)?.label ?? '';
+  const getGenderLabel = (value: string) => genders.find((g) => g.value === value)?.label ?? '';
 
   if (!profile) {
     return (
@@ -84,11 +92,11 @@ const ProfileScreen = () => {
   const profileRows = [
     { label: 'Имя', value: profile.first_name },
     { label: 'Фамилия', value: profile.last_name },
-    { label: 'Пол', value: translateGender(profile.gender) },
+    { label: 'Пол', value: getGenderLabel(profile.gender) },
     { label: 'Дата рождения', value: new Date(profile.birth_date).toLocaleDateString('ru-RU') },
     { label: 'Рост', value: `${profile.height} см` },
-    { label: 'Уровень активности', value: translateLevelActivity(profile.activity_level) },
-    { label: 'Тип диеты', value: translateDietType(profile.diet_type) },
+    { label: 'Уровень активности', value: getActivityLevelLabel(profile.activity_level) },
+    { label: 'Тип диеты', value: getDietTypeLabel(profile.diet_type) },
   ];
 
   return (
