@@ -1,3 +1,4 @@
+import { getActivityLevels, getDietTypes, getGenders } from '@/api/meta';
 import { createProfile } from '@/api/profiles';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
@@ -5,8 +6,8 @@ import AppText from '@/components/AppText';
 import ChoiceButton from '@/components/ChoiceButton';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
+import { useAppNavigation } from '@/types/navigation';
 import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
@@ -21,30 +22,12 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const CreateProfileScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
-  const activityLevels = [
-    { label: 'Минимальный', value: 'minimal' },
-    { label: 'Лёгкий', value: 'light' },
-    { label: 'Средний', value: 'moderate' },
-    { label: 'Высокий', value: 'high' },
-    { label: 'Очень высокий', value: 'very_high' },
-  ];
-  const dietTypes = [
-    { label: 'Веганская', value: 'vegan' },
-    { label: 'Вегетарианская', value: 'vegetarian' },
-    { label: 'Пескетарианство', value: 'pescatarian' },
-    { label: 'Халяль', value: 'halal' },
-    { label: 'Кошер', value: 'kosher' },
-    { label: 'Обычная', value: 'default' },
-  ];
-  const genders = [
-    { label: 'Мужской', value: 'male' },
-    { label: 'Женский', value: 'female' },
-  ];
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [gender, setGender] = useState<string>('');
-  //const [activityLevels, setActivityLevels] = useState<{ label: string; value: string }[]>([]);
-  //const [dietTypes, setDietTypes] = useState<{ label: string; value: string }[]>([]);
+  const [activityLevels, setActivityLevels] = useState<{ code: string; name: string }[]>([]);
+  const [dietTypes, setDietTypes] = useState<{ code: string; name: string }[]>([]);
+  const [genders, setGenders] = useState<{ value: string; label: string }[]>([]);
   const [activityLevel, setActivityLevel] = useState<string>('');
   const [dietType, setDietType] = useState<string>('');
   const [height, setHeight] = useState('170');
@@ -54,14 +37,21 @@ const CreateProfileScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // твой API запрос
-        // по умолчанию первый
+        const data = await getActivityLevels(token);
+        setActivityLevels(data);
       } catch (err) {
         console.log(err);
       }
       try {
-        // твой API запрос
-        // по умолчанию первый
+        const data = await getDietTypes(token);
+        setDietTypes(data);
+      } catch (err) {
+        console.log(err);
+      }
+      try {
+        const data = await getGenders(token);
+        console.log(data);
+        setGenders(data);
       } catch (err) {
         console.log(err);
       }
@@ -138,10 +128,10 @@ const CreateProfileScreen = () => {
         <View style={styles.row}>
           {activityLevels.map((level) => (
             <ChoiceButton
-              key={level.value}
-              label={level.label}
-              selected={activityLevel === level.value}
-              onPress={() => setActivityLevel(level.value)}
+              key={level.code}
+              label={level.name}
+              selected={activityLevel === level.code}
+              onPress={() => setActivityLevel(level.code)}
             />
           ))}
         </View>
@@ -150,10 +140,10 @@ const CreateProfileScreen = () => {
         <View style={styles.rowWrap}>
           {dietTypes.map((diet) => (
             <ChoiceButton
-              key={diet.value}
-              label={diet.label}
-              selected={dietType === diet.value}
-              onPress={() => setDietType(diet.value)}
+              key={diet.code}
+              label={diet.name}
+              selected={dietType === diet.code}
+              onPress={() => setDietType(diet.code)}
             />
           ))}
         </View>

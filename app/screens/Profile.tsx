@@ -1,11 +1,12 @@
+import { getActivityLevels, getDietTypes, getGenders } from '@/api/meta';
 import { getProfile } from '@/api/profiles';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
 import { ProfileData } from '@/types/data';
+import { useAppNavigation } from '@/types/navigation';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -13,28 +14,9 @@ const ProfileScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
   const [profile, setProfile] = useState<ProfileData>();
-  //const [activityLevels, setActivityLevels] = useState<{ label: string; value: string }[]>([]);
-  //const [dietTypes, setDietTypes] = useState<{ label: string; value: string }[]>([]);
-  const activityLevels = [
-    { label: 'Минимальный', value: 'minimal' },
-    { label: 'Лёгкий', value: 'light' },
-    { label: 'Средний', value: 'moderate' },
-    { label: 'Высокий', value: 'high' },
-    { label: 'Очень высокий', value: 'very_high' },
-  ];
-  const dietTypes = [
-    { label: 'Веганская', value: 'vegan' },
-    { label: 'Вегетарианская', value: 'vegetarian' },
-    { label: 'Пескетарианство', value: 'pescatarian' },
-    { label: 'Халяль', value: 'halal' },
-    { label: 'Кошер', value: 'kosher' },
-    { label: 'Обычная', value: 'default' },
-  ];
-
-  const genders = [
-    { label: 'Мужской', value: 'male' },
-    { label: 'Женский', value: 'female' },
-  ];
+  const [activityLevels, setActivityLevels] = useState<{ code: string; name: string }[]>([]);
+  const [dietTypes, setDietTypes] = useState<{ code: string; name: string }[]>([]);
+  const [genders, setGenders] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -52,14 +34,20 @@ const ProfileScreen = () => {
         console.log(error);
       }
       try {
-        // твой API запрос
-        // по умолчанию первый
+        const data = await getActivityLevels(token);
+        setActivityLevels(data);
       } catch (err) {
         console.log(err);
       }
       try {
-        // твой API запрос
-        // по умолчанию первый
+        const data = await getDietTypes(token);
+        setDietTypes(data);
+      } catch (err) {
+        console.log(err);
+      }
+      try {
+        const data = await getGenders(token);
+        setGenders(data);
       } catch (err) {
         console.log(err);
       }
@@ -68,8 +56,8 @@ const ProfileScreen = () => {
   }, []);
 
   const getActivityLevelLabel = (value: string) =>
-    activityLevels.find((a) => a.value === value)?.label || '';
-  const getDietTypeLabel = (value: string) => dietTypes.find((d) => d.value === value)?.label ?? '';
+    activityLevels.find((a) => a.code === value)?.name || '';
+  const getDietTypeLabel = (value: string) => dietTypes.find((d) => d.code === value)?.name ?? '';
   const getGenderLabel = (value: string) => genders.find((g) => g.value === value)?.label ?? '';
 
   if (!profile) {

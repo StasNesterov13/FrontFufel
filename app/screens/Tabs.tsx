@@ -34,6 +34,7 @@ const Tabs = () => {
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: { backgroundColor: colors.white, paddingBottom: 4, height: 60 },
         tabBarIcon: ({ color, size }) => getTabIcon(route.name, color, size),
+        detachInactiveScreens: false,
       })}
     >
       <Tab.Screen name='Главная' component={HomeScreen} />

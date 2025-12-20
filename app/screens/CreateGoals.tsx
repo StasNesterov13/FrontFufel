@@ -1,13 +1,14 @@
 import { recalculateDailyNorms } from '@/api/daily_norms';
 import { createGoals } from '@/api/goals';
+import { getGoalTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
 import ChoiceButton from '@/components/ChoiceButton';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
+import { useAppNavigation } from '@/types/navigation';
 import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
@@ -22,13 +23,8 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const CreateGoalsScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
-  const goalTypes = [
-    { label: 'Снижение веса', value: 'cut' },
-    { label: 'Набор веса', value: 'bulk' },
-    { label: 'Поддержание веса', value: 'maintain' },
-  ];
   const [type, setType] = useState<string>('');
-  //const [goalTypes, setGoalTypes] = useState<{ label: string; value: string }[]>([]);
+  const [goalTypes, setGoalTypes] = useState<{ code: string; name: string }[]>([]);
   const [targetWeight, setTargetWeight] = useState<string>('75');
   const [startAt, setStartAt] = useState<Date>(new Date());
   const [endAt, setEndAt] = useState<Date>(new Date());
@@ -38,8 +34,8 @@ const CreateGoalsScreen = () => {
   useEffect(() => {
     const fetchGoalTypes = async () => {
       try {
-        // запрос к API
-        // дефолтное значение
+        const data = await getGoalTypes(token);
+        setGoalTypes(data);
       } catch (err) {
         console.log(err);
       }
@@ -71,10 +67,10 @@ const CreateGoalsScreen = () => {
         <View style={styles.row}>
           {goalTypes.map((g) => (
             <ChoiceButton
-              key={g.value}
-              label={g.label}
-              selected={type === g.value}
-              onPress={() => setType(g.value)}
+              key={g.code}
+              label={g.name}
+              selected={type === g.code}
+              onPress={() => setType(g.code)}
             />
           ))}
         </View>

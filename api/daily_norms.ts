@@ -35,16 +35,17 @@ export const recalculateDailyNorms = async (token: string | null) => {
 };
 
 export const getDayProgress = async (token: string | null, target_date: string) => {
-  const query = new URLSearchParams({
-    target_date: target_date,
-  }).toString();
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/daily-norms/progress?${query}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/daily-norms/progress?target_date=${target_date}&timezone=${timezone}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const error = await response.text();

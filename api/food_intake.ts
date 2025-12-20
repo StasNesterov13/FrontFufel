@@ -2,12 +2,11 @@ import { API_BASE_URL } from '@/constants/config';
 export interface FoodIntakeData {
   intake_time: string;
   grams: number;
-  recipe_id?: number;
-  name?: string;
-  calories?: number;
-  protein?: number;
-  fat?: number;
-  carbs?: number;
+  name: string;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
 }
 export const getFoodIntakes = async (token: string | null, target_date: string) => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;

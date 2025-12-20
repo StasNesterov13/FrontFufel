@@ -1,6 +1,8 @@
 import { AuthProvider } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
+import CreateFoodIntakesScreen from './screens/CreateFoodIntakes';
 import CreateGoalsScreen from './screens/CreateGoals';
 import CreateMeasurementsScreen from './screens/CreateMeasurements';
 import CreateProfileScreen from './screens/CreateProfile';
@@ -18,11 +20,16 @@ console.warn = (...args) => {
   originalWarn(...args);
 };
 const AppNavigator = () => {
+  const { token } = useAuth();
   return (
-    <Stack.Navigator initialRouteName={'Tabs'} screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={token ? 'Tabs' : 'Login'}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name='CreateProfile' component={CreateProfileScreen} />
       <Stack.Screen name='CreateMeasurements' component={CreateMeasurementsScreen} />
       <Stack.Screen name='CreateGoals' component={CreateGoalsScreen} />
+      <Stack.Screen name='CreateFoodIntakes' component={CreateFoodIntakesScreen} />
       <Stack.Screen name='Tabs' component={Tabs} />
       <Stack.Screen name='Login' component={LoginScreen} />
       <Stack.Screen name='Register' component={RegisterScreen} />

@@ -1,3 +1,4 @@
+import { getUser } from '@/api/users';
 import LoadingView from '@/components/LoadingView';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useEffect, useState } from 'react';
@@ -24,13 +25,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const loadToken = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync('token');
-        setToken(storedToken);
+
+        try {
+          await getUser(storedToken);
+          setToken(storedToken);
+        } catch (error: any) {
+          if (error.cause.status === 401) {
+            await SecureStore.deleteItemAsync('token');
+            setToken(null);
+          }
+          console.log(error);
+        }
       } catch (error) {
         console.log(error);
       } finally {
         setLoading(false);
       }
     };
+
     loadToken();
   }, []);
 

@@ -1,4 +1,5 @@
 import { createMenuPlan, deleteMenuPlan, getMenuPlan, updateMenuPlan } from '@/api/menu_plans';
+import { getMealTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
@@ -23,22 +24,24 @@ const MenuScreen = () => {
   const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [creating, setCreating] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
-  const mealTypes = [
-    { label: 'Завтрак', value: 'breakfast' },
-    { label: 'Обед', value: 'dinner' },
-    { label: 'Ужин', value: 'maintain' },
-  ];
+  const [mealTypes, setMealTypes] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
-    const fetchMenuPlan = async () => {
+    const fetchData = async () => {
       try {
         const data = await getMenuPlan(token);
         setMenuPlan(data);
       } catch (error) {
         console.log(error);
       }
+      try {
+        const data = await getMealTypes(token);
+        setMealTypes(data);
+      } catch (error) {
+        console.log(error);
+      }
     };
-    fetchMenuPlan();
+    fetchData();
   }, []);
 
   const handleCreatePlan = async () => {

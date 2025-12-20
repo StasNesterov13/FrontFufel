@@ -1,10 +1,9 @@
 import { getDailyNorms, getDayProgress } from '@/api/daily_norms';
-import { createFoodIntake, deleteFoodIntake, getFoodIntakes } from '@/api/food_intake';
+import { deleteFoodIntake, getFoodIntakes } from '@/api/food_intake';
 import { getGoals } from '@/api/goals';
 import { getLastMeasurement } from '@/api/measurements';
-import { getMenuPlan } from '@/api/menu_plans';
+import { getGoalTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
-import AppInput from '@/components/AppInput';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
 import WeekPicker from '@/components/AppWeekPicker';
@@ -13,7 +12,6 @@ import UpdateGoals from '@/components/UpdateGoals';
 import UpdateMeasurements from '@/components/UpdateMeasurements';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing } from '@/theme';
 import {
   DailyNormsData,
@@ -21,48 +19,24 @@ import {
   FoodIntakeData,
   GoalData,
   MeasurementData,
-  MenuPlanData,
 } from '@/types/data';
-import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect } from '@react-navigation/native';
+import { useAppNavigation } from '@/types/navigation';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import CircularProgress from 'react-native-circular-progress-indicator';
 const HomeScreen = () => {
   const { token } = useAuth();
   const navigation = useAppNavigation();
-  const goalTypes = [
-    { label: 'Снижение веса', value: 'cut' },
-    { label: 'Набор веса', value: 'bulk' },
-    { label: 'Поддержание веса', value: 'maintain' },
-  ];
-  //const [goalTypes, setGoalTypes] = useState<{ label: string; value: string }[]>([]);
+  const [goalTypes, setGoalTypes] = useState<{ code: string; name: string }[]>([]);
   const [measurement, setMeasurement] = useState<MeasurementData>();
   const [goal, setGoal] = useState<GoalData>();
   const [dayProgress, setDayProgress] = useState<DayProgressData>();
   const [dailyNorms, setDailyNorms] = useState<DailyNormsData>();
-  const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [foodIntake, setFoodIntake] = useState<FoodIntakeData[]>([]);
-  const [recipeId, setRecipeId] = useState<number | null>(null);
   const [updateMeasurment, setUpdateMeasurment] = useState(false);
   const [updateGoal, setUpdateGoal] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [grams, setGrams] = useState<string>('150');
   const [date, setDate] = useState<Date>(new Date());
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchPlan = async () => {
-        try {
-          const data = await getMenuPlan(token);
-          setMenuPlan(data);
-        } catch (error) {
-          console.log(error);
-        }
-      };
-      fetchPlan();
-    }, [])
-  );
 
   const fetchData = async () => {
     try {
@@ -92,8 +66,8 @@ const HomeScreen = () => {
       console.log(error);
     }
     try {
-      // твой API запрос
-      // по умолчанию первый
+      const data = await getGoalTypes(token);
+      setGoalTypes(data);
     } catch (err) {
       console.log(err);
     }
@@ -124,21 +98,6 @@ const HomeScreen = () => {
 
   if (loading) return <LoadingView />;
 
-  const handleAddFood = async () => {
-    if (!recipeId) return;
-
-    try {
-      await createFoodIntake(token, {
-        intake_time: date.toISOString(),
-        recipe_id: recipeId,
-        grams: Number(grams),
-      });
-    } catch (error) {
-      console.log(error);
-    }
-    fetchDaily(date);
-  };
-
   const handleDeleteFood = async (id: string) => {
     try {
       await deleteFoodIntake(token, id);
@@ -150,8 +109,7 @@ const HomeScreen = () => {
     }
   };
 
-  const getGoalTypeLabel = (value: string) => goalTypes.find((g) => g.value === value)?.label ?? '';
-  const menuRecipes = menuPlan?.menu_recipes;
+  const getGoalTypeLabel = (value: string) => goalTypes.find((g) => g.code === value)?.name ?? '';
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -165,7 +123,7 @@ const HomeScreen = () => {
       </View>
       {dayProgress && dailyNorms && (
         <View style={styles.card}>
-          <AppText style={styles.sectionTitle}>Питание за сегодня</AppText>
+          <AppText style={styles.sectionTitle}>Сводка</AppText>
 
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
             <CircularProgress
@@ -234,53 +192,13 @@ const HomeScreen = () => {
               </View>
             ))}
           </View>
-
-          {menuRecipes && (
-            <View style={{ marginTop: 20 }}>
-              <AppText style={{ fontWeight: '600', marginBottom: 8 }}>Добавить блюдо</AppText>
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: '#ccc',
-                  borderRadius: 8,
-                  overflow: 'hidden',
-                  marginBottom: 10,
-                }}
-              >
-                <Picker selectedValue={recipeId} onValueChange={setRecipeId}>
-                  <Picker.Item label='Выберите рецепт' value={null} />
-                  {menuRecipes.map((item: any) => (
-                    <Picker.Item
-                      key={item.recipe.id}
-                      label={item.recipe.name}
-                      value={item.recipe.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-              <AppInput
-                value={grams}
-                onChangeText={setGrams}
-                placeholder='Граммы'
-                keyboardType='numeric'
-                style={{
-                  borderWidth: 1,
-                  borderColor: '#ccc',
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  marginBottom: 10,
-                }}
-              />
-              <AppButton title='Добавить' onPress={handleAddFood} />
-            </View>
-          )}
+          <AppButton title='Добавить' onPress={() => navigation.navigate('CreateFoodIntakes')} />
         </View>
       )}
 
       {foodIntake && (
         <View style={{ marginTop: 20 }}>
-          <AppText style={{ fontWeight: '600', marginBottom: 10 }}>Принято сегодня</AppText>
+          <AppText style={{ fontWeight: '600', marginBottom: 10 }}>Питание</AppText>
           {foodIntake.map((item: FoodIntakeData) => (
             <View
               key={item.id}
@@ -382,6 +300,7 @@ const HomeScreen = () => {
           goal={goal}
           token={token}
           onUpdated={setGoal}
+          goalTypes={goalTypes}
         />
       )}
     </ScrollView>

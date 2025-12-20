@@ -3,8 +3,8 @@ import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
 import { useAuth } from '@/hooks/useAuth';
-import { useAppNavigation } from '@/hooks/useNavigation';
 import { colors, spacing, typography } from '@/theme';
+import { useAppNavigation } from '@/types/navigation';
 import React, { useState } from 'react';
 import {
   Keyboard,

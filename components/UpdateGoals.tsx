@@ -13,18 +13,18 @@ interface Props {
   visible: boolean;
   goal: any;
   token: string | null;
+  goalTypes: { code: string; name: string }[];
   onClose: () => void;
   onUpdated: (data: any) => void;
 }
 
-const UpdateGoals = ({ visible, goal, token, onClose, onUpdated }: Props) => {
-  const [type, setType] = useState<'cut' | 'bulk' | 'maintain'>(goal.type);
+const UpdateGoals = ({ visible, goal, token, goalTypes, onClose, onUpdated }: Props) => {
+  const [type, setType] = useState<string>('');
   const [targetWeight, setTargetWeight] = useState<string>(String(goal.target_weight));
   const [startAt, setStartAt] = useState<Date>(new Date(goal.start_at));
   const [endAt, setEndAt] = useState<Date>(new Date(goal.end_at));
   const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
   const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
-
   const handleSave = async () => {
     try {
       const result = await updateGoals(token, {
@@ -48,21 +48,14 @@ const UpdateGoals = ({ visible, goal, token, onClose, onUpdated }: Props) => {
 
           <AppText style={styles.label}>Тип цели</AppText>
           <View style={styles.row}>
-            <ChoiceButton
-              label='Снижение веса'
-              selected={type === 'cut'}
-              onPress={() => setType('cut')}
-            />
-            <ChoiceButton
-              label='Набор веса'
-              selected={type === 'bulk'}
-              onPress={() => setType('bulk')}
-            />
-            <ChoiceButton
-              label='Поддержание веса'
-              selected={type === 'maintain'}
-              onPress={() => setType('maintain')}
-            />
+            {goalTypes.map((g) => (
+              <ChoiceButton
+                key={g.code}
+                label={g.name}
+                selected={type === g.code}
+                onPress={() => setType(g.code)}
+              />
+            ))}
           </View>
 
           <AppText style={styles.label}>Целевой вес (кг)</AppText>
