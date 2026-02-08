@@ -23,8 +23,11 @@ export const createMenuPlan = async (token: string | null, menuPlanData: MenuPla
   return await response.json();
 };
 
-export const getMenuPlan = async (token: string | null) => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
+export const getMenuPlan = async (token: string | null, target_date: string) => {
+  const url = new URL(`${API_BASE_URL}/api/v1/menu-plans/`);
+  url.searchParams.append('target_date', target_date);
+
+  const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -40,8 +43,8 @@ export const getMenuPlan = async (token: string | null) => {
   return await response.json();
 };
 
-export const deleteMenuPlan = async (token: string | null) => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/`, {
+export const deleteMenuPlan = async (token: string | null, id: number) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/${id}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -57,16 +60,13 @@ export const deleteMenuPlan = async (token: string | null) => {
 };
 
 export const updateMenuPlan = async (token: string | null, recipeId: number) => {
-  const response = await fetch(
-    `${API_BASE_URL}/api/v1/menu-plans/replace-recipe?recipe_id=${recipeId}`,
-    {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  const response = await fetch(`${API_BASE_URL}/api/v1/menu-plans/recipe/${recipeId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
 
   if (!response.ok) {
     const error = await response.text();

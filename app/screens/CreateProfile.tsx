@@ -50,7 +50,6 @@ const CreateProfileScreen = () => {
       }
       try {
         const data = await getGenders(token);
-        console.log(data);
         setGenders(data);
       } catch (err) {
         console.log(err);

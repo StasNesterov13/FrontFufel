@@ -23,9 +23,9 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 const CreateGoalsScreen = () => {
   const { token, logoutToken } = useAuth();
   const navigation = useAppNavigation();
-  const [type, setType] = useState<string>('');
+  const [typeGoal, setGoalType] = useState<string>();
   const [goalTypes, setGoalTypes] = useState<{ code: string; name: string }[]>([]);
-  const [targetWeight, setTargetWeight] = useState<string>('75');
+  const [targetWeight, setTargetWeight] = useState<string>();
   const [startAt, setStartAt] = useState<Date>(new Date());
   const [endAt, setEndAt] = useState<Date>(new Date());
 
@@ -46,7 +46,7 @@ const CreateGoalsScreen = () => {
   const handleSubmit = async () => {
     try {
       await createGoals(token, {
-        type,
+        type: typeGoal!,
         target_weight: Number(targetWeight),
         start_at: toISODate(startAt),
         end_at: toISODate(endAt),
@@ -69,8 +69,8 @@ const CreateGoalsScreen = () => {
             <ChoiceButton
               key={g.code}
               label={g.name}
-              selected={type === g.code}
-              onPress={() => setType(g.code)}
+              selected={typeGoal === g.code}
+              onPress={() => setGoalType(g.code)}
             />
           ))}
         </View>

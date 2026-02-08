@@ -2,6 +2,7 @@ import { getDailyNorms, getDayProgress } from '@/api/daily_norms';
 import { deleteFoodIntake, getFoodIntakes } from '@/api/food_intake';
 import { getGoals } from '@/api/goals';
 import { getLastMeasurement } from '@/api/measurements';
+import { getMenuPlan } from '@/api/menu_plans';
 import { getGoalTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
@@ -19,9 +20,11 @@ import {
   FoodIntakeData,
   GoalData,
   MeasurementData,
+  MenuPlanData,
 } from '@/types/data';
 import { useAppNavigation } from '@/types/navigation';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import CircularProgress from 'react-native-circular-progress-indicator';
 const HomeScreen = () => {
@@ -29,6 +32,7 @@ const HomeScreen = () => {
   const navigation = useAppNavigation();
   const [goalTypes, setGoalTypes] = useState<{ code: string; name: string }[]>([]);
   const [measurement, setMeasurement] = useState<MeasurementData>();
+  const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
   const [goal, setGoal] = useState<GoalData>();
   const [dayProgress, setDayProgress] = useState<DayProgressData>();
   const [dailyNorms, setDailyNorms] = useState<DailyNormsData>();
@@ -47,6 +51,12 @@ const HomeScreen = () => {
         navigation.navigate('CreateMeasurements');
         return;
       }
+      console.log(error);
+    }
+    try {
+      const data = await getMenuPlan(token, toISODate(new Date()));
+      setMenuPlan(data);
+    } catch (error) {
       console.log(error);
     }
     try {
@@ -91,6 +101,12 @@ const HomeScreen = () => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchDaily(date);
+    }, []),
+  );
+
   useEffect(() => {
     fetchDaily(date);
     fetchData();
@@ -109,7 +125,7 @@ const HomeScreen = () => {
     }
   };
 
-  const getGoalTypeLabel = (value: string) => goalTypes.find((g) => g.code === value)?.name ?? '';
+  const getGoalTypeLabel = (value: string) => goalTypes.find((g) => g.code === value)?.name;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -192,7 +208,10 @@ const HomeScreen = () => {
               </View>
             ))}
           </View>
-          <AppButton title='Добавить' onPress={() => navigation.navigate('CreateFoodIntakes')} />
+          <AppButton
+            title='Добавить'
+            onPress={() => navigation.navigate('CreateFoodIntakes', { data: menuPlan! })}
+          />
         </View>
       )}
 
@@ -275,7 +294,7 @@ const HomeScreen = () => {
       {goal && (
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Цели</AppText>
-          <AppRow label='Тип цели' value={getGoalTypeLabel(goal.type)} />
+          <AppRow label='Тип цели' value={getGoalTypeLabel(goal.type)!} />
           <AppRow label='Целевой вес' value={`${goal.target_weight} кг`} />
           <AppRow label='Начало' value={new Date(goal.start_at).toLocaleDateString('ru-RU')} />
           <AppRow label='Конец' value={new Date(goal.end_at).toLocaleDateString('ru-RU')} />
@@ -328,6 +347,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: 12,
     elevation: 3,
-    gap: spacing.md,
   },
 });

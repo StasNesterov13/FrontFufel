@@ -3,6 +3,7 @@ import { getProfile } from '@/api/profiles';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
+import UpdateProfile from '@/components/UpdateProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { colors, spacing, typography } from '@/theme';
 import { ProfileData } from '@/types/data';
@@ -17,6 +18,7 @@ const ProfileScreen = () => {
   const [activityLevels, setActivityLevels] = useState<{ code: string; name: string }[]>([]);
   const [dietTypes, setDietTypes] = useState<{ code: string; name: string }[]>([]);
   const [genders, setGenders] = useState<{ value: string; label: string }[]>([]);
+  const [updateProfile, setUpdateProfile] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -56,9 +58,9 @@ const ProfileScreen = () => {
   }, []);
 
   const getActivityLevelLabel = (value: string) =>
-    activityLevels.find((a) => a.code === value)?.name || '';
-  const getDietTypeLabel = (value: string) => dietTypes.find((d) => d.code === value)?.name ?? '';
-  const getGenderLabel = (value: string) => genders.find((g) => g.value === value)?.label ?? '';
+    activityLevels.find((a) => a.code === value)?.name;
+  const getDietTypeLabel = (value: string) => dietTypes.find((d) => d.code === value)?.name;
+  const getGenderLabel = (value: string) => genders.find((g) => g.value === value)?.label;
 
   if (!profile) {
     return (
@@ -92,10 +94,20 @@ const ProfileScreen = () => {
       <AppText style={styles.title}>Мой профиль</AppText>
       <View style={styles.card}>
         {profileRows.map(({ label, value }) => (
-          <AppRow key={label} label={label} value={value} />
+          <AppRow key={label} label={label} value={value!} />
         ))}
       </View>
-
+      <UpdateProfile
+        visible={updateProfile}
+        profile={profile}
+        token={token}
+        genders={genders}
+        activityLevels={activityLevels}
+        dietTypes={dietTypes}
+        onClose={() => setUpdateProfile(false)}
+        onUpdated={(updatedProfile) => setProfile(updatedProfile)}
+      />
+      <AppButton title='Редактировать профиль' onPress={() => setUpdateProfile(true)} />
       <AppText
         style={styles.logout}
         onPress={() => {

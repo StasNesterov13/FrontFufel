@@ -35,7 +35,7 @@ const LoginScreen = () => {
       <ScrollView contentContainerStyle={styles.container}>
         <AppText style={styles.title}>Вход</AppText>
 
-        <AppInput placeholder='Email' value={email} onChangeText={setEmail} autoCapitalize='none' />
+        <AppInput placeholder='Email' value={email} onChangeText={setEmail} />
         <AppInput
           placeholder='Пароль'
           value={password}

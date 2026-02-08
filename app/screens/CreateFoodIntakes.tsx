@@ -1,64 +1,62 @@
-import { getMenuPlan } from '@/api/menu_plans';
 import AppText from '@/components/AppText';
 import CreateFoodIntake from '@/components/CreateFoodIntake';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
 import { MenuItem, MenuPlanData } from '@/types/data';
-import { useAppNavigation } from '@/types/navigation';
-import { useFocusEffect } from 'expo-router';
+import { useAppNavigation, useAppRoute } from '@/types/navigation';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 const CreateFoodIntakesScreen = () => {
   const { token } = useAuth();
   const navigation = useAppNavigation();
-  const [menuPlan, setMenuPlan] = useState<MenuPlanData>();
+  const route = useAppRoute();
   const [createFoodIntake, setCreateFoodIntake] = useState(false);
-  const [foodIntakeId, setFoodIntakeId] = useState<string>('');
+  const [foodIntakeId, setFoodIntakeId] = useState<number | null>();
+  const [foodIntakeName, setFoodIntakeName] = useState<string>();
+  const menuPlan: MenuPlanData = route.params!.data;
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchMenuPlan = async () => {
-        try {
-          const data = await getMenuPlan(token);
-          setMenuPlan(data);
-        } catch (error) {
-          console.log(error);
-        }
-      };
-      fetchMenuPlan();
-    }, [])
-  );
   const menuRecipes = menuPlan?.menu_recipes;
-  const handleSelectFoodIntake = (foodIntakeId: string) => {
+
+  const handleSelectFoodIntake = (foodIntakeId: number | null, foodIntakeName: string) => {
     setFoodIntakeId(foodIntakeId);
+    setFoodIntakeName(foodIntakeName);
     setCreateFoodIntake(true);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Tabs')} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <AppText style={styles.backButtonText}>← Назад</AppText>
         </TouchableOpacity>
         <AppText style={styles.title}>Выберите рецепт</AppText>
       </View>
 
       {menuRecipes?.map((item: MenuItem, index) => (
-        <View key={`${item.id}-${index}`}>
+        <View key={index}>
           <TouchableOpacity
             style={styles.recipeCard}
             activeOpacity={0.8}
-            onPress={() => handleSelectFoodIntake(item.id)}
+            onPress={() => handleSelectFoodIntake(item.recipe.id, item.recipe.name)}
           >
             <AppText style={styles.recipeName}>{item.recipe.name}</AppText>
           </TouchableOpacity>
         </View>
       ))}
-
+      <TouchableOpacity
+        style={[styles.recipeCard, { backgroundColor: '#f0f0f0' }]}
+        activeOpacity={0.8}
+        onPress={() => handleSelectFoodIntake(null, '')}
+      >
+        <AppText style={{ fontSize: 18, fontWeight: '600', color: colors.primary }}>
+          + Добавить вручную
+        </AppText>
+      </TouchableOpacity>
       {createFoodIntake && (
         <CreateFoodIntake
           visible={createFoodIntake}
-          foodIntakeId={foodIntakeId}
+          foodIntakeId={foodIntakeId!}
+          foodIntakeName={foodIntakeName!}
           onClose={() => setCreateFoodIntake(false)}
           token={token}
         />

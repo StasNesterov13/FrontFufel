@@ -24,8 +24,12 @@ export interface MeasurementData {
 }
 
 export interface Ingredient {
-  id: string;
+  id: number;
   name: string;
+  calories: string;
+  protein: string;
+  fat: string;
+  carbs: string;
   quantity: number;
   unit: string;
 }
@@ -33,20 +37,29 @@ export interface Ingredient {
 export interface Recipe {
   id: number;
   name: string;
+  instruction: string;
+  servings: number;
+  calories: string;
+  protein: string;
+  fat: string;
+  carbs: string;
+  images_path: string;
   ingredients: Ingredient[];
+  cooking_time: string;
 }
 
-export interface MenuItem {
-  id: string;
-  day_of_week: number;
+export interface MenuRecipes {
+  id: number;
+  date: string;
   meal_type: string;
   recipe: Recipe;
 }
 
 export interface MenuPlanData {
+  id: number;
   start_date: string;
   end_date: string;
-  menu_recipes: MenuItem[];
+  menu_recipes: MenuRecipes[];
 }
 
 export interface ProfileData {

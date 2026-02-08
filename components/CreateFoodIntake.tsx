@@ -1,5 +1,7 @@
+import { createFoodIntake } from '@/api/food_intake';
+import { calculateRecipeNutrition } from '@/api/recipes';
 import { colors, spacing } from '@/theme';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, StyleSheet, TextInput, View } from 'react-native';
 import AppButton from './AppButton';
 import AppText from './AppText';
@@ -7,66 +9,132 @@ import AppText from './AppText';
 interface Props {
   token: string | null;
   visible: boolean;
-  foodIntakeId: string | null;
+  foodIntakeId: number | null;
+  foodIntakeName: string;
   onClose: () => void;
 }
-interface FoodIntakeData {
-  intake_time: string;
-  grams: number;
+
+interface NutritionData {
   name: string;
+  grams: number;
   calories: number;
   protein: number;
   fat: number;
   carbs: number;
 }
 
-const CreateFoodIntake = ({ token, visible, foodIntakeId, onClose }: Props) => {
-  const [grams, setGrams] = useState('100');
-  const [foodData, setFoodData] = useState<FoodIntakeData>();
+const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClose }: Props) => {
+  const [nutrition, setNutrition] = useState<NutritionData>({
+    name: foodIntakeName,
+    grams: 0,
+    calories: 0,
+    protein: 0,
+    fat: 0,
+    carbs: 0,
+  });
+
+  const firstRender = useRef(true);
 
   useEffect(() => {
-    setFoodData({
-      intake_time: new Date().toISOString(),
-      grams: 100,
-      name: `Рецепт ${foodIntakeId}`,
-      calories: 200,
-      protein: 10,
-      fat: 5,
-      carbs: 30,
-    });
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
 
-    setGrams('100');
-  }, []);
+    const fetchData = async () => {
+      if (!foodIntakeId) return;
 
-  if (!foodData) return null;
+      try {
+        const data = await calculateRecipeNutrition(token, foodIntakeId, {
+          grams: nutrition.grams,
+        });
+        setNutrition(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-  const factor = Number(grams) / foodData.grams;
+    fetchData();
+  }, [token, foodIntakeId]);
 
-  const handleSave = () => {
-    const gramsNumber = Number(grams);
-    onClose();
+  const handleAdd = async () => {
+    try {
+      await createFoodIntake(token, {
+        intake_time: new Date().toISOString(),
+        name: nutrition.name,
+        grams: nutrition.grams,
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        fat: nutrition.fat,
+        carbs: nutrition.carbs,
+      });
+      onClose();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleChange = (field: keyof NutritionData, text: string) => {
+    if (field === 'name') {
+      setNutrition((prev) => ({ ...prev, name: text }));
+    } else {
+      const value = Number(text);
+      setNutrition((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   return (
     <Modal visible={visible} transparent animationType='slide'>
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          <AppText style={styles.title}>{foodData.name}</AppText>
+          <AppText style={styles.label}>Название</AppText>
+          <TextInput
+            style={styles.input}
+            value={nutrition.name}
+            onChangeText={(text) => handleChange('name', text)}
+          />
 
           <AppText style={styles.label}>Граммы</AppText>
           <TextInput
             style={styles.input}
             keyboardType='numeric'
-            value={grams}
-            onChangeText={setGrams}
+            value={nutrition.grams.toString()}
+            onChangeText={(text) => handleChange('grams', text)}
           />
 
-          <AppText>Калории: {Math.round(foodData.calories * factor)}</AppText>
-          <AppText>Белки: {Math.round(foodData.protein * factor)} г</AppText>
-          <AppText>Жиры: {Math.round(foodData.fat * factor)} г</AppText>
-          <AppText>Углеводы: {Math.round(foodData.carbs * factor)} г</AppText>
+          <AppText style={styles.label}>Калории</AppText>
+          <TextInput
+            style={styles.input}
+            keyboardType='numeric'
+            value={nutrition.calories.toString()}
+            onChangeText={(text) => handleChange('calories', text)}
+          />
 
-          <AppButton title='Добавить' onPress={handleSave} />
+          <AppText style={styles.label}>Белки</AppText>
+          <TextInput
+            style={styles.input}
+            keyboardType='numeric'
+            value={nutrition.protein.toString()}
+            onChangeText={(text) => handleChange('protein', text)}
+          />
+
+          <AppText style={styles.label}>Жиры</AppText>
+          <TextInput
+            style={styles.input}
+            keyboardType='numeric'
+            value={nutrition.fat.toString()}
+            onChangeText={(text) => handleChange('fat', text)}
+          />
+
+          <AppText style={styles.label}>Углеводы</AppText>
+          <TextInput
+            style={styles.input}
+            keyboardType='numeric'
+            value={nutrition.carbs.toString()}
+            onChangeText={(text) => handleChange('carbs', text)}
+          />
+
+          <AppButton title='Добавить' onPress={handleAdd} />
           <View style={{ marginTop: 8 }}>
             <AppButton title='Отмена' onPress={onClose} />
           </View>
@@ -92,11 +160,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: spacing.md,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
   label: {
     fontSize: 14,
     fontWeight: '600',
@@ -109,5 +172,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: spacing.sm,
     marginBottom: spacing.md,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
   },
 });

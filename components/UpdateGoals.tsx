@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     padding: spacing.lg,
     borderRadius: 12,
-    gap: spacing.md,
   },
   title: {
     fontSize: 18,
