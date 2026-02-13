@@ -17,7 +17,7 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateMeasurementsScreen = () => {
-  const { token, logoutToken } = useAuth();
+  const { token } = useAuth();
   const navigation = useAppNavigation();
 
   const [weight, setWeight] = useState<string>('70');
@@ -92,15 +92,6 @@ const CreateMeasurementsScreen = () => {
         />
 
         <AppButton title='Сохранить' onPress={handleSubmit} />
-        <AppText
-          style={styles.logout}
-          onPress={() => {
-            logoutToken();
-            navigation.navigate('Login');
-          }}
-        >
-          Выйти
-        </AppText>
       </ScrollView>
     </TouchableWithoutFeedback>
   );

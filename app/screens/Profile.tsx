@@ -108,15 +108,13 @@ const ProfileScreen = () => {
         onUpdated={(updatedProfile) => setProfile(updatedProfile)}
       />
       <AppButton title='Редактировать профиль' onPress={() => setUpdateProfile(true)} />
-      <AppText
-        style={styles.logout}
+      <AppButton
+        title='Выйти'
         onPress={() => {
           logoutToken();
           navigation.navigate('Login');
         }}
-      >
-        Выйти
-      </AppText>
+      />
     </ScrollView>
   );
 };
@@ -149,7 +147,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 4,
-    marginBottom: spacing.xl,
   },
   logout: {
     textAlign: 'center',

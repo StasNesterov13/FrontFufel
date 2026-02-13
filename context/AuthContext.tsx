@@ -25,12 +25,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const loadToken = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync('token');
-
+        if (!storedToken) {
+          setToken(null);
+          return;
+        }
         try {
           await getUser(storedToken);
           setToken(storedToken);
         } catch (error: any) {
-          if (error.cause.status === 401) {
+          if (error?.cause?.status === 401) {
             await SecureStore.deleteItemAsync('token');
             setToken(null);
           }

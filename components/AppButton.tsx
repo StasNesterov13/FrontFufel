@@ -21,10 +21,10 @@ const AppButton = ({ title, onPress, loading = false }: Props) => (
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
-    padding: spacing.md,
+    padding: spacing.sm,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
   text: {
     color: colors.white,

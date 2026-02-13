@@ -21,32 +21,37 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateGoalsScreen = () => {
-  const { token, logoutToken } = useAuth();
+  const { token } = useAuth();
   const navigation = useAppNavigation();
   const [typeGoal, setGoalType] = useState<string>();
   const [goalTypes, setGoalTypes] = useState<{ code: string; name: string }[]>([]);
   const [targetWeight, setTargetWeight] = useState<string>();
   const [startAt, setStartAt] = useState<Date>(new Date());
   const [endAt, setEndAt] = useState<Date>(new Date());
+  const [loading, setLoading] = useState(false);
 
   const [isStartPickerVisible, setStartPickerVisibility] = useState(false);
   const [isEndPickerVisible, setEndPickerVisibility] = useState(false);
   useEffect(() => {
     const fetchGoalTypes = async () => {
+      setLoading(true);
       try {
         const data = await getGoalTypes(token);
         setGoalTypes(data);
       } catch (err) {
         console.log(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchGoalTypes();
   }, []);
   const handleSubmit = async () => {
+    if (!typeGoal || !targetWeight) return;
     try {
       await createGoals(token, {
-        type: typeGoal!,
+        type: typeGoal,
         target_weight: Number(targetWeight),
         start_at: toISODate(startAt),
         end_at: toISODate(endAt),
@@ -120,15 +125,6 @@ const CreateGoalsScreen = () => {
         />
 
         <AppButton title='Создать цель' onPress={handleSubmit} />
-        <AppText
-          style={styles.logout}
-          onPress={() => {
-            logoutToken();
-            navigation.navigate('Login');
-          }}
-        >
-          Выйти
-        </AppText>
       </ScrollView>
     </TouchableWithoutFeedback>
   );

@@ -48,7 +48,7 @@ export interface Recipe {
   cooking_time: string;
 }
 
-export interface MenuRecipes {
+export interface MenuRecipe {
   id: number;
   date: string;
   meal_type: string;
@@ -59,7 +59,7 @@ export interface MenuPlanData {
   id: number;
   start_date: string;
   end_date: string;
-  menu_recipes: MenuRecipes[];
+  menu_recipes: MenuRecipe[];
 }
 
 export interface ProfileData {

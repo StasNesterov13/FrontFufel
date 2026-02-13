@@ -2,9 +2,11 @@ import { createFoodIntake } from '@/api/food_intake';
 import { calculateRecipeNutrition } from '@/api/recipes';
 import { colors, spacing } from '@/theme';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, StyleSheet, TextInput, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import AppButton from './AppButton';
+import AppInput from './AppInput';
 import AppText from './AppText';
+import NumericInput from './NumericInput';
 
 interface Props {
   token: string | null;
@@ -35,38 +37,47 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
 
   const firstRender = useRef(true);
 
+  // Автоматический пересчёт БЖУ при изменении грамм
   useEffect(() => {
+    if (!foodIntakeId || !token) return;
     if (firstRender.current) {
       firstRender.current = false;
       return;
     }
 
-    const fetchData = async () => {
-      if (!foodIntakeId) return;
-
+    const handler = setTimeout(async () => {
       try {
         const data = await calculateRecipeNutrition(token, foodIntakeId, {
           grams: nutrition.grams,
         });
-        setNutrition(data);
+        setNutrition((prev) => ({
+          ...prev,
+          calories: data.calories,
+          protein: data.protein,
+          fat: data.fat,
+          carbs: data.carbs,
+        }));
       } catch (error) {
         console.log(error);
       }
-    };
+    }, 600);
 
-    fetchData();
-  }, [token, foodIntakeId]);
+    return () => clearTimeout(handler);
+  }, [nutrition.grams, foodIntakeId, token]);
+
+  const handleNumberChange = (field: keyof NutritionData, value: number) => {
+    setNutrition((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleNameChange = (text: string) => {
+    setNutrition((prev) => ({ ...prev, name: text }));
+  };
 
   const handleAdd = async () => {
     try {
       await createFoodIntake(token, {
         intake_time: new Date().toISOString(),
-        name: nutrition.name,
-        grams: nutrition.grams,
-        calories: nutrition.calories,
-        protein: nutrition.protein,
-        fat: nutrition.fat,
-        carbs: nutrition.carbs,
+        ...nutrition,
       });
       onClose();
     } catch (error) {
@@ -74,66 +85,73 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
     }
   };
 
-  const handleChange = (field: keyof NutritionData, text: string) => {
-    if (field === 'name') {
-      setNutrition((prev) => ({ ...prev, name: text }));
-    } else {
-      const value = Number(text);
-      setNutrition((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
   return (
     <Modal visible={visible} transparent animationType='slide'>
       <View style={styles.overlay}>
         <View style={styles.modal}>
+          {/* Название */}
           <AppText style={styles.label}>Название</AppText>
-          <TextInput
+          <AppInput
             style={styles.input}
             value={nutrition.name}
-            onChangeText={(text) => handleChange('name', text)}
+            onChangeText={handleNameChange}
+            placeholder='Введите название'
           />
 
-          <AppText style={styles.label}>Граммы</AppText>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={nutrition.grams.toString()}
-            onChangeText={(text) => handleChange('grams', text)}
-          />
+          {/* Граммы и Калории */}
+          <View style={styles.row}>
+            <View style={styles.field}>
+              <AppText style={styles.label}>Граммы</AppText>
+              <NumericInput
+                style={styles.input}
+                value={Math.round(nutrition.grams)}
+                onChange={(val) => handleNumberChange('grams', val)}
+                placeholder='0'
+              />
+            </View>
+            <View style={styles.field}>
+              <AppText style={styles.label}>Калории</AppText>
+              <NumericInput
+                style={styles.input}
+                value={Math.round(nutrition.calories)}
+                onChange={(val) => handleNumberChange('calories', val)}
+                placeholder='0'
+              />
+            </View>
+          </View>
 
-          <AppText style={styles.label}>Калории</AppText>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={nutrition.calories.toString()}
-            onChangeText={(text) => handleChange('calories', text)}
-          />
+          {/* Белки, Жиры, Углеводы */}
+          <View style={styles.row}>
+            <View style={styles.field}>
+              <AppText style={styles.label}>Белки</AppText>
+              <NumericInput
+                style={styles.input}
+                value={Math.round(nutrition.protein)}
+                onChange={(val) => handleNumberChange('protein', val)}
+                placeholder='0'
+              />
+            </View>
+            <View style={styles.field}>
+              <AppText style={styles.label}>Жиры</AppText>
+              <NumericInput
+                style={styles.input}
+                value={Math.round(nutrition.fat)}
+                onChange={(val) => handleNumberChange('fat', val)}
+                placeholder='0'
+              />
+            </View>
+            <View style={styles.field}>
+              <AppText style={styles.label}>Углеводы</AppText>
+              <NumericInput
+                style={styles.input}
+                value={Math.round(nutrition.carbs)}
+                onChange={(val) => handleNumberChange('carbs', val)}
+                placeholder='0'
+              />
+            </View>
+          </View>
 
-          <AppText style={styles.label}>Белки</AppText>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={nutrition.protein.toString()}
-            onChangeText={(text) => handleChange('protein', text)}
-          />
-
-          <AppText style={styles.label}>Жиры</AppText>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={nutrition.fat.toString()}
-            onChangeText={(text) => handleChange('fat', text)}
-          />
-
-          <AppText style={styles.label}>Углеводы</AppText>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            value={nutrition.carbs.toString()}
-            onChangeText={(text) => handleChange('carbs', text)}
-          />
-
+          {/* Кнопки */}
           <AppButton title='Добавить' onPress={handleAdd} />
           <View style={{ marginTop: 8 }}>
             <AppButton title='Отмена' onPress={onClose} />
@@ -154,11 +172,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    width: '85%',
+    width: '90%',
     backgroundColor: colors.white,
     padding: spacing.lg,
     borderRadius: 12,
-    gap: spacing.md,
   },
   label: {
     fontSize: 14,
@@ -173,9 +190,13 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  field: {
+    flex: 1,
+    marginRight: 8,
   },
 });

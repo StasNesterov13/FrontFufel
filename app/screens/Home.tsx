@@ -47,7 +47,7 @@ const HomeScreen = () => {
       const data = await getLastMeasurement(token);
       setMeasurement(data);
     } catch (error: any) {
-      if (error.cause.status === 400) {
+      if (error?.cause?.status === 400) {
         navigation.navigate('CreateMeasurements');
         return;
       }
@@ -63,7 +63,7 @@ const HomeScreen = () => {
       const data = await getGoals(token);
       setGoal(data);
     } catch (error: any) {
-      if (error.cause.status === 400) {
+      if (error?.cause?.status === 400) {
         navigation.navigate('CreateGoals');
         return;
       }
@@ -80,8 +80,9 @@ const HomeScreen = () => {
       setGoalTypes(data);
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchDaily = async (date: Date) => {
@@ -104,11 +105,10 @@ const HomeScreen = () => {
   useFocusEffect(
     useCallback(() => {
       fetchDaily(date);
-    }, []),
+    }, [date, token]),
   );
 
   useEffect(() => {
-    fetchDaily(date);
     fetchData();
   }, []);
 
@@ -156,7 +156,7 @@ const HomeScreen = () => {
               titleStyle={{ fontSize: 16, fontWeight: '600' }}
             />
             <AppText style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
-              {Math.round(dayProgress.consumed_calories)} / {dailyNorms.daily_calories}
+              {Math.round(dayProgress.consumed_calories)} / {Math.round(dailyNorms.daily_calories)}
             </AppText>
             <AppText style={{ marginTop: 10, fontSize: 15, color: colors.textSecondary }}>
               🔥 Калории
@@ -202,7 +202,7 @@ const HomeScreen = () => {
                   titleStyle={{ fontSize: 12 }}
                 />
                 <AppText style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
-                  {Math.round(item.value)}/{item.norm}
+                  {Math.round(item.value)}/{Math.round(item.norm)}
                 </AppText>
                 <AppText style={{ marginTop: 6, fontSize: 13 }}>{item.label}</AppText>
               </View>
@@ -210,7 +210,10 @@ const HomeScreen = () => {
           </View>
           <AppButton
             title='Добавить'
-            onPress={() => navigation.navigate('CreateFoodIntakes', { data: menuPlan! })}
+            onPress={() => {
+              if (!menuPlan) return;
+              navigation.navigate('CreateFoodIntakes', { data: menuPlan, day: toISODate(date) });
+            }}
           />
         </View>
       )}
@@ -251,7 +254,7 @@ const HomeScreen = () => {
                 }}
               >
                 <AppText style={{ fontSize: 13, color: colors.textSecondary }}>
-                  ⚖️ {item.grams} г ⏰{' '}
+                  ⚖️ {Math.round(item.grams)} г ⏰{' '}
                   {new Date(item.intake_time).toLocaleTimeString('ru-RU', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -260,16 +263,16 @@ const HomeScreen = () => {
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
                 <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🥩 {item.protein} г
+                  🥩 {Math.round(item.protein)} г
                 </AppText>
                 <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🧈 {item.fat} г
+                  🧈 {Math.round(item.fat)} г
                 </AppText>
                 <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🍞 {item.carbs} г
+                  🍞 {Math.round(item.carbs)} г
                 </AppText>
                 <AppText style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
-                  🔥 {item.calories} ккал
+                  🔥 {Math.round(item.calories)} ккал
                 </AppText>
               </View>
             </View>
@@ -284,8 +287,8 @@ const HomeScreen = () => {
             label='Дата'
             value={new Date(measurement.measured_at).toLocaleDateString('ru-RU')}
           />
-          <AppRow label='Вес' value={`${measurement.weight} кг`} />
-          <AppRow label='Жир' value={`${measurement.bodyfat}%`} />
+          <AppRow label='Вес' value={`${Number(measurement.weight).toFixed(1)} кг`} />
+          <AppRow label='Жир' value={`${Number(measurement.bodyfat).toFixed(1)}%`} />
           {measurement.notes && <AppRow label='Заметки' value={measurement.notes} />}
           <AppButton title='Изменить' onPress={() => setUpdateMeasurment(true)} />
         </View>
@@ -295,7 +298,7 @@ const HomeScreen = () => {
         <View style={styles.card}>
           <AppText style={styles.sectionTitle}>Цели</AppText>
           <AppRow label='Тип цели' value={getGoalTypeLabel(goal.type)!} />
-          <AppRow label='Целевой вес' value={`${goal.target_weight} кг`} />
+          <AppRow label='Целевой вес' value={`${Number(goal.target_weight).toFixed(1)} кг`} />
           <AppRow label='Начало' value={new Date(goal.start_at).toLocaleDateString('ru-RU')} />
           <AppRow label='Конец' value={new Date(goal.end_at).toLocaleDateString('ru-RU')} />
           <AppButton title='Изменить' onPress={() => setUpdateGoal(true)} />

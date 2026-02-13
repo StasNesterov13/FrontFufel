@@ -1,4 +1,4 @@
-import { createMenuPlan, deleteMenuPlan, getMenuPlan } from '@/api/menu_plans';
+import { createMenuPlan, deleteMenuPlan, getMenuPlan, updateMenuPlan } from '@/api/menu_plans';
 import { getMealTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
 import AppRow from '@/components/AppRow';
@@ -6,7 +6,7 @@ import AppText from '@/components/AppText';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
 import { colors, spacing, typography } from '@/theme';
-import { MenuPlanData, MenuRecipes } from '@/types/data';
+import { MenuPlanData, MenuRecipe } from '@/types/data';
 import { RotateCw } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -71,9 +71,24 @@ const MenuScreen = () => {
     }
   };
 
-  const handleReplaceRecipe = async (meal: MenuRecipes) => {
-    // Здесь можно открыть модальное окно выбора нового рецепта
-    console.log('Заменить рецепт для', meal.id);
+  const handleReplaceRecipe = async (meal: MenuRecipe) => {
+    try {
+      if (!token) return;
+
+      const updatedRecipe = await updateMenuPlan(token, meal.id);
+      setMenuPlan((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          menu_recipes: prev.menu_recipes.map((m) =>
+            m.id === meal.id ? { ...m, recipe: updatedRecipe } : m,
+          ),
+        };
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const getMealTypeLabel = (value: string) => mealTypes.find((m) => m.value === value)?.label;
@@ -125,7 +140,6 @@ const MenuScreen = () => {
     );
   }
 
-  // Группировка рецептов по дате
   const groupedByDate = menuPlan.menu_recipes.reduce((acc: any, meal: any) => {
     if (!acc[meal.date]) acc[meal.date] = [];
     acc[meal.date].push(meal);
@@ -150,7 +164,7 @@ const MenuScreen = () => {
       <View style={styles.card}>
         <AppText style={styles.subtitle}>Приемы пищи</AppText>
 
-        {Object.entries(groupedByDate as Record<string, MenuRecipes[]>).map(([date, meals]) => (
+        {Object.entries(groupedByDate as Record<string, MenuRecipe[]>).map(([date, meals]) => (
           <View key={date} style={{ marginBottom: spacing.lg }}>
             <AppText style={styles.date}>{new Date(date).toLocaleDateString('ru-RU')}</AppText>
 
@@ -175,7 +189,10 @@ const MenuScreen = () => {
                   <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
                   {meal.recipe.ingredients.map((ingredient) => (
                     <AppText key={ingredient.id} style={styles.ingredientItem}>
-                      • {ingredient.name} — {ingredient.quantity} {ingredient.unit}
+                      • {ingredient.name} —{' '}
+                      {+ingredient.quantity === 0
+                        ? 'по вкусу'
+                        : `${Math.round(+ingredient.quantity)} ${ingredient.unit}`}
                     </AppText>
                   ))}
                 </View>

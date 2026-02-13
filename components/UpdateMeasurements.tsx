@@ -19,7 +19,7 @@ interface Props {
 const UpdateMeasurements = ({ visible, measurement, token, onClose, onUpdated }: Props) => {
   const [weight, setWeight] = useState<string>(String(measurement.weight));
   const [bodyfat, setBodyfat] = useState<string>(String(measurement.bodyfat));
-  const [notes, setNotes] = useState<string>(measurement.notes);
+  const [notes, setNotes] = useState<string>(measurement.notes ?? '');
   const [measuredAt, setMeasuredAt] = useState<Date>(new Date(measurement.measured_at));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 

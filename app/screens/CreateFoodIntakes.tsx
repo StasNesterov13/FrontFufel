@@ -2,7 +2,7 @@ import AppText from '@/components/AppText';
 import CreateFoodIntake from '@/components/CreateFoodIntake';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/theme';
-import { MenuItem, MenuPlanData } from '@/types/data';
+import { MenuPlanData, MenuRecipe } from '@/types/data';
 import { useAppNavigation, useAppRoute } from '@/types/navigation';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -11,12 +11,13 @@ const CreateFoodIntakesScreen = () => {
   const navigation = useAppNavigation();
   const route = useAppRoute();
   const [createFoodIntake, setCreateFoodIntake] = useState(false);
-  const [foodIntakeId, setFoodIntakeId] = useState<number | null>();
-  const [foodIntakeName, setFoodIntakeName] = useState<string>();
-  const menuPlan: MenuPlanData = route.params!.data;
+  const [foodIntakeId, setFoodIntakeId] = useState<number | null>(null);
+  const [foodIntakeName, setFoodIntakeName] = useState<string>('');
+  const menuPlan: MenuPlanData | undefined = route.params?.data;
+  const date: string | undefined = route.params?.day;
 
   const menuRecipes = menuPlan?.menu_recipes;
-
+  const todayMenuRecipes = menuRecipes?.filter((item: MenuRecipe) => item.date === date!);
   const handleSelectFoodIntake = (foodIntakeId: number | null, foodIntakeName: string) => {
     setFoodIntakeId(foodIntakeId);
     setFoodIntakeName(foodIntakeName);
@@ -27,12 +28,12 @@ const CreateFoodIntakesScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <AppText style={styles.backButtonText}>← Назад</AppText>
+          <AppText style={styles.arrow}>←</AppText>
         </TouchableOpacity>
         <AppText style={styles.title}>Выберите рецепт</AppText>
       </View>
 
-      {menuRecipes?.map((item: MenuItem, index) => (
+      {todayMenuRecipes?.map((item: MenuRecipe, index) => (
         <View key={index}>
           <TouchableOpacity
             style={styles.recipeCard}
@@ -55,8 +56,8 @@ const CreateFoodIntakesScreen = () => {
       {createFoodIntake && (
         <CreateFoodIntake
           visible={createFoodIntake}
-          foodIntakeId={foodIntakeId!}
-          foodIntakeName={foodIntakeName!}
+          foodIntakeId={foodIntakeId}
+          foodIntakeName={foodIntakeName}
           onClose={() => setCreateFoodIntake(false)}
           token={token}
         />
@@ -69,9 +70,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 48,
-    gap: 12,
+    marginTop: 12,
   },
   container: {
     paddingHorizontal: 32,
@@ -87,21 +86,14 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   backButton: {
-    marginBottom: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backButtonText: {
-    fontSize: 16,
-    color: colors.primary,
+  arrow: {
+    fontSize: 32,
+    lineHeight: 48,
+    marginBottom: 32,
     fontWeight: '600',
   },
   recipeCard: {

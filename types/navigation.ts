@@ -6,7 +6,7 @@ type RootStackParamList = {
   CreateProfile: undefined;
   CreateMeasurements: undefined;
   CreateGoals: undefined;
-  CreateFoodIntakes: { data: MenuPlanData };
+  CreateFoodIntakes: { data: MenuPlanData; day: string };
   Login: undefined;
   Register: undefined;
   Profile: undefined;

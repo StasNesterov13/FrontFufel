@@ -4,6 +4,7 @@ import AppButton from '@/components/AppButton';
 import AppInput from '@/components/AppInput';
 import AppText from '@/components/AppText';
 import ChoiceButton from '@/components/ChoiceButton';
+import LoadingView from '@/components/LoadingView';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
 import { colors, spacing, typography } from '@/theme';
@@ -20,7 +21,7 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const CreateProfileScreen = () => {
-  const { token, logoutToken } = useAuth();
+  const { token } = useAuth();
   const navigation = useAppNavigation();
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
@@ -33,31 +34,29 @@ const CreateProfileScreen = () => {
   const [height, setHeight] = useState('170');
   const [birthDate, setBirthDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const data = await getActivityLevels(token);
-        setActivityLevels(data);
+        const [activityData, dietData, genderData] = await Promise.all([
+          getActivityLevels(token),
+          getDietTypes(token),
+          getGenders(token),
+        ]);
+        setActivityLevels(activityData);
+        setDietTypes(dietData);
+        setGenders(genderData);
       } catch (err) {
         console.log(err);
-      }
-      try {
-        const data = await getDietTypes(token);
-        setDietTypes(data);
-      } catch (err) {
-        console.log(err);
-      }
-      try {
-        const data = await getGenders(token);
-        setGenders(data);
-      } catch (err) {
-        console.log(err);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchData();
   }, []);
+
   const handleSubmit = async () => {
     try {
       await createProfile(token, {
@@ -75,6 +74,7 @@ const CreateProfileScreen = () => {
     }
   };
 
+  if (loading) return <LoadingView />;
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps='handled'>
@@ -148,15 +148,6 @@ const CreateProfileScreen = () => {
         </View>
 
         <AppButton title='Создать профиль' onPress={handleSubmit} />
-        <AppText
-          style={styles.logout}
-          onPress={() => {
-            logoutToken();
-            navigation.navigate('Login');
-          }}
-        >
-          Выйти
-        </AppText>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
@@ -230,5 +221,6 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontWeight: 700,
     fontSize: 16,
+    marginTop: 12,
   },
 });

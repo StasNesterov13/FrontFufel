@@ -19,7 +19,7 @@ interface Props {
 }
 
 const UpdateGoals = ({ visible, goal, token, goalTypes, onClose, onUpdated }: Props) => {
-  const [type, setType] = useState<string>('');
+  const [type, setType] = useState<string>(goal.type);
   const [targetWeight, setTargetWeight] = useState<string>(String(goal.target_weight));
   const [startAt, setStartAt] = useState<Date>(new Date(goal.start_at));
   const [endAt, setEndAt] = useState<Date>(new Date(goal.end_at));
