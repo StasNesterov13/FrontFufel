@@ -91,7 +91,6 @@ const ProfileScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <AppText style={styles.title}>Мой профиль</AppText>
       <View style={styles.card}>
         {profileRows.map(({ label, value }) => (
           <AppRow key={label} label={label} value={value!} />
@@ -139,6 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   card: {
+    marginTop: spacing.lg,
     backgroundColor: colors.white,
     borderRadius: 12,
     padding: spacing.lg,

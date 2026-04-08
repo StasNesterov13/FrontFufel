@@ -13,6 +13,7 @@ interface Props {
   visible: boolean;
   foodIntakeId: number | null;
   foodIntakeName: string;
+  foodIntakeDate: string;
   onClose: () => void;
 }
 
@@ -25,7 +26,14 @@ interface NutritionData {
   carbs: number;
 }
 
-const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClose }: Props) => {
+const CreateFoodIntake = ({
+  token,
+  visible,
+  foodIntakeId,
+  foodIntakeName,
+  foodIntakeDate,
+  onClose,
+}: Props) => {
   const [nutrition, setNutrition] = useState<NutritionData>({
     name: foodIntakeName,
     grams: 0,
@@ -76,7 +84,7 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
   const handleAdd = async () => {
     try {
       await createFoodIntake(token, {
-        intake_time: new Date().toISOString(),
+        intake_time: foodIntakeDate,
         ...nutrition,
       });
       onClose();
@@ -89,7 +97,6 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
     <Modal visible={visible} transparent animationType='slide'>
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          {/* Название */}
           <AppText style={styles.label}>Название</AppText>
           <AppInput
             style={styles.input}
@@ -98,7 +105,6 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
             placeholder='Введите название'
           />
 
-          {/* Граммы и Калории */}
           <View style={styles.row}>
             <View style={styles.field}>
               <AppText style={styles.label}>Граммы</AppText>
@@ -120,7 +126,6 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
             </View>
           </View>
 
-          {/* Белки, Жиры, Углеводы */}
           <View style={styles.row}>
             <View style={styles.field}>
               <AppText style={styles.label}>Белки</AppText>
@@ -151,7 +156,6 @@ const CreateFoodIntake = ({ token, visible, foodIntakeId, foodIntakeName, onClos
             </View>
           </View>
 
-          {/* Кнопки */}
           <AppButton title='Добавить' onPress={handleAdd} />
           <View style={{ marginTop: 8 }}>
             <AppButton title='Отмена' onPress={onClose} />

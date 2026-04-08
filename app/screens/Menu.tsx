@@ -1,16 +1,16 @@
 import { createMenuPlan, deleteMenuPlan, getMenuPlan, updateMenuPlan } from '@/api/menu_plans';
 import { getMealTypes } from '@/api/meta';
 import AppButton from '@/components/AppButton';
-import AppRow from '@/components/AppRow';
 import AppText from '@/components/AppText';
+import WeekPicker from '@/components/AppWeekPicker';
 import { useAuth } from '@/hooks/useAuth';
 import { toISODate } from '@/hooks/useDate';
 import { colors, spacing, typography } from '@/theme';
 import { MenuPlanData, MenuRecipe } from '@/types/data';
+import { endOfWeek, startOfWeek } from 'date-fns';
 import { RotateCw } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const MenuScreen = () => {
   const { token } = useAuth();
@@ -18,37 +18,41 @@ const MenuScreen = () => {
   const [creating, setCreating] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [mealTypes, setMealTypes] = useState<{ value: string; label: string }[]>([]);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-  const [isDatePickerStart, setDatePickerStart] = useState<boolean>(false);
-  const [isDatePickerEnd, setDatePickerEnd] = useState<boolean>(false);
+  const [date, setDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    const today = toISODate(new Date());
     const fetchData = async () => {
-      try {
-        const data = await getMenuPlan(token, today);
-        setMenuPlan(data);
-      } catch (error) {
-        setMenuPlan(null);
-        console.log(error);
+      const isOutOfRange =
+        !menuPlan || toISODate(date) < menuPlan.start_date || toISODate(date) > menuPlan.end_date;
+
+      if (isOutOfRange) {
+        try {
+          const data = await getMenuPlan(token, toISODate(date));
+          setMenuPlan(data);
+        } catch (error) {
+          console.log(error);
+        }
       }
-      try {
-        const data = await getMealTypes(token);
-        setMealTypes(data);
-      } catch (error) {
-        console.log(error);
+
+      if (mealTypes.length === 0) {
+        try {
+          const data = await getMealTypes(token);
+          setMealTypes(data);
+        } catch (error) {
+          console.log(error);
+        }
       }
     };
+
     fetchData();
-  }, []);
+  }, [date]);
 
   const handleCreatePlan = async () => {
     try {
       setCreating(true);
       await createMenuPlan(token, {
-        start_date: toISODate(startDate),
-        end_date: toISODate(endDate),
+        start_date: toISODate(startOfWeek(date, { weekStartsOn: 1 })),
+        end_date: toISODate(endOfWeek(date, { weekStartsOn: 1 })),
       });
       const data = await getMenuPlan(token, toISODate(new Date()));
       setMenuPlan(data);
@@ -92,120 +96,73 @@ const MenuScreen = () => {
   };
 
   const getMealTypeLabel = (value: string) => mealTypes.find((m) => m.value === value)?.label;
+  const mealOrder = { breakfast: 1, lunch: 2, dinner: 3 };
 
-  if (!menuPlan) {
-    return (
-      <View style={styles.loader}>
-        <AppText style={styles.label}>Дата начала</AppText>
-        <TouchableOpacity
-          onPress={() => setDatePickerStart(true)}
-          style={[styles.input, { justifyContent: 'center' }]}
-        >
-          <AppText>{startDate.toLocaleDateString('ru-RU')}</AppText>
-        </TouchableOpacity>
-        <DateTimePickerModal
-          isVisible={isDatePickerStart}
-          mode='date'
-          date={startDate}
-          locale='ru_RU'
-          onConfirm={(d) => {
-            setStartDate(d);
-            setDatePickerStart(false);
-          }}
-          onCancel={() => setDatePickerStart(false)}
-        />
-        <AppText style={styles.label}>Дата окончания</AppText>
-        <TouchableOpacity
-          onPress={() => setDatePickerEnd(true)}
-          style={[styles.input, { justifyContent: 'center' }]}
-        >
-          <AppText>{endDate.toLocaleDateString('ru-RU')}</AppText>
-        </TouchableOpacity>
-        <DateTimePickerModal
-          isVisible={isDatePickerEnd}
-          mode='date'
-          date={endDate}
-          locale='ru_RU'
-          onConfirm={(d) => {
-            setEndDate(d);
-            setDatePickerEnd(false);
-          }}
-          onCancel={() => setDatePickerEnd(false)}
-        />
-        <AppButton
-          title={creating ? 'Создание...' : 'Создать меню-план'}
-          onPress={handleCreatePlan}
-        />
-      </View>
-    );
-  }
-
-  const groupedByDate = menuPlan.menu_recipes.reduce((acc: any, meal: any) => {
-    if (!acc[meal.date]) acc[meal.date] = [];
-    acc[meal.date].push(meal);
-    return acc;
-  }, {});
+  const mealsForSelectedDate = (menuPlan?.menu_recipes ?? []).filter(
+    (meal) => meal.date === toISODate(date),
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <AppText style={styles.title}>Мой меню-план</AppText>
-
-      <View style={styles.card}>
-        <AppRow
-          label='Дата начала'
-          value={new Date(menuPlan.start_date).toLocaleDateString('ru-RU')}
-        />
-        <AppRow
-          label='Дата окончания'
-          value={new Date(menuPlan.end_date).toLocaleDateString('ru-RU')}
+      <View>
+        <WeekPicker
+          onDayChange={(date) => {
+            setDate(date);
+          }}
         />
       </View>
 
-      <View style={styles.card}>
-        <AppText style={styles.subtitle}>Приемы пищи</AppText>
-
-        {Object.entries(groupedByDate as Record<string, MenuRecipe[]>).map(([date, meals]) => (
-          <View key={date} style={{ marginBottom: spacing.lg }}>
-            <AppText style={styles.date}>{new Date(date).toLocaleDateString('ru-RU')}</AppText>
-
-            {meals.map((meal) => (
-              <View key={meal.id} style={styles.recipeCard}>
-                <View style={styles.recipeHeader}>
-                  <View style={{ flex: 1 }}>
-                    <AppText style={styles.mealType}>
-                      {getMealTypeLabel(meal.meal_type) ?? meal.meal_type}
-                    </AppText>
-                    <AppText style={styles.recipeName}>{meal.recipe.name}</AppText>
+      {!menuPlan ? (
+        <>
+          <AppButton
+            title={creating ? 'Создание...' : 'Создать меню-план'}
+            onPress={handleCreatePlan}
+          />
+        </>
+      ) : (
+        <>
+          <View style={{ marginBottom: spacing.lg }}>
+            {mealsForSelectedDate
+              .sort(
+                (a, b) =>
+                  mealOrder[a.meal_type as keyof typeof mealOrder] -
+                  mealOrder[b.meal_type as keyof typeof mealOrder],
+              )
+              .map((meal) => (
+                <View key={meal.id} style={styles.recipeCard}>
+                  <View style={styles.recipeHeader}>
+                    <View style={{ flex: 1 }}>
+                      <AppText style={styles.mealType}>{getMealTypeLabel(meal.meal_type)}</AppText>
+                      <AppText style={styles.recipeName}>{meal.recipe.name}</AppText>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.replaceCircle}
+                      onPress={() => handleReplaceRecipe(meal)}
+                    >
+                      <RotateCw color='#fff' size={18} />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={styles.replaceCircle}
-                    onPress={() => handleReplaceRecipe(meal)}
-                  >
-                    <RotateCw color='#fff' size={18} />
-                  </TouchableOpacity>
-                </View>
 
-                <View style={styles.ingredientsBlock}>
-                  <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
-                  {meal.recipe.ingredients.map((ingredient) => (
-                    <AppText key={ingredient.id} style={styles.ingredientItem}>
-                      • {ingredient.name} —{' '}
-                      {+ingredient.quantity === 0
-                        ? 'по вкусу'
-                        : `${Math.round(+ingredient.quantity)} ${ingredient.unit}`}
-                    </AppText>
-                  ))}
+                  <View style={styles.ingredientsBlock}>
+                    <AppText style={styles.ingredientsTitle}>Ингредиенты:</AppText>
+                    {meal.recipe.ingredients.map((ingredient) => (
+                      <AppText key={ingredient.id} style={styles.ingredientItem}>
+                        • {ingredient.name} —{' '}
+                        {+ingredient.quantity === 0
+                          ? 'по вкусу'
+                          : `${Math.round(+ingredient.quantity)} ${ingredient.unit}`}
+                      </AppText>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
           </View>
-        ))}
-      </View>
-
-      <AppButton
-        title={deleting ? 'Удаление...' : 'Удалить меню-план'}
-        onPress={handleDeletePlan}
-      />
+          <AppButton
+            title={deleting ? 'Удаление...' : 'Удалить меню-план'}
+            onPress={handleDeletePlan}
+          />
+        </>
+      )}
     </ScrollView>
   );
 };

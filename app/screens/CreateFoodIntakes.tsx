@@ -1,6 +1,7 @@
 import AppText from '@/components/AppText';
 import CreateFoodIntake from '@/components/CreateFoodIntake';
 import { useAuth } from '@/hooks/useAuth';
+import { toISOString } from '@/hooks/useDate';
 import { colors } from '@/theme';
 import { MenuPlanData, MenuRecipe } from '@/types/data';
 import { useAppNavigation, useAppRoute } from '@/types/navigation';
@@ -17,7 +18,9 @@ const CreateFoodIntakesScreen = () => {
   const date: string | undefined = route.params?.day;
 
   const menuRecipes = menuPlan?.menu_recipes;
-  const todayMenuRecipes = menuRecipes?.filter((item: MenuRecipe) => item.date === date!);
+  const todayMenuRecipes = menuRecipes?.filter(
+    (item: MenuRecipe) => item.date === toISOString(date!),
+  );
   const handleSelectFoodIntake = (foodIntakeId: number | null, foodIntakeName: string) => {
     setFoodIntakeId(foodIntakeId);
     setFoodIntakeName(foodIntakeName);
@@ -26,12 +29,7 @@ const CreateFoodIntakesScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <AppText style={styles.arrow}>←</AppText>
-        </TouchableOpacity>
-        <AppText style={styles.title}>Выберите рецепт</AppText>
-      </View>
+      <View style={styles.header}></View>
 
       {todayMenuRecipes?.map((item: MenuRecipe, index) => (
         <View key={index}>
@@ -58,6 +56,7 @@ const CreateFoodIntakesScreen = () => {
           visible={createFoodIntake}
           foodIntakeId={foodIntakeId}
           foodIntakeName={foodIntakeName}
+          foodIntakeDate={date!}
           onClose={() => setCreateFoodIntake(false)}
           token={token}
         />

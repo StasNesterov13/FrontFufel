@@ -54,12 +54,6 @@ const HomeScreen = () => {
       console.log(error);
     }
     try {
-      const data = await getMenuPlan(token, toISODate(new Date()));
-      setMenuPlan(data);
-    } catch (error) {
-      console.log(error);
-    }
-    try {
       const data = await getGoals(token);
       setGoal(data);
     } catch (error: any) {
@@ -86,16 +80,21 @@ const HomeScreen = () => {
   };
 
   const fetchDaily = async (date: Date) => {
-    const today = toISODate(date);
     try {
-      const data = await getDayProgress(token, today);
+      const data = await getDayProgress(token, toISODate(date));
       setDayProgress(data);
+      console.log(data);
     } catch (error) {
       console.log(error);
     }
-
     try {
-      const data = await getFoodIntakes(token, today);
+      const data = await getMenuPlan(token, toISODate(new Date()));
+      setMenuPlan(data);
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      const data = await getFoodIntakes(token, toISODate(date));
       setFoodIntake(data);
     } catch (error) {
       console.log(error);
@@ -133,7 +132,6 @@ const HomeScreen = () => {
         <WeekPicker
           onDayChange={(date) => {
             setDate(date);
-            fetchDaily(date);
           }}
         />
       </View>
@@ -156,7 +154,7 @@ const HomeScreen = () => {
               titleStyle={{ fontSize: 16, fontWeight: '600' }}
             />
             <AppText style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
-              {Math.round(dayProgress.consumed_calories)} / {Math.round(dailyNorms.daily_calories)}
+              {Math.round(dayProgress.consumed_calories)} | {Math.round(dailyNorms.daily_calories)}
             </AppText>
             <AppText style={{ marginTop: 10, fontSize: 15, color: colors.textSecondary }}>
               🔥 Калории
@@ -202,7 +200,7 @@ const HomeScreen = () => {
                   titleStyle={{ fontSize: 12 }}
                 />
                 <AppText style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
-                  {Math.round(item.value)}/{Math.round(item.norm)}
+                  {Math.round(item.value)} | {Math.round(item.norm)}
                 </AppText>
                 <AppText style={{ marginTop: 6, fontSize: 13 }}>{item.label}</AppText>
               </View>
@@ -212,71 +210,89 @@ const HomeScreen = () => {
             title='Добавить'
             onPress={() => {
               if (!menuPlan) return;
-              navigation.navigate('CreateFoodIntakes', { data: menuPlan, day: toISODate(date) });
+              navigation.navigate('CreateFoodIntakes', { data: menuPlan, day: date.toISOString() });
             }}
           />
-        </View>
-      )}
+          {foodIntake && (
+            <View style={{ marginTop: 20 }}>
+              <AppText style={styles.sectionTitle}>Питание</AppText>
+              {foodIntake.map((item: FoodIntakeData) => (
+                <View
+                  key={item.id}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#E5E5E5',
+                    borderRadius: 10,
+                    padding: 12,
+                    marginBottom: 12,
+                    backgroundColor: colors.white,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <AppText
+                        numberOfLines={3}
+                        ellipsizeMode='tail'
+                        style={{
+                          fontWeight: '600',
+                          fontSize: 15,
+                        }}
+                      >
+                        {item.name}
+                      </AppText>
+                    </View>
 
-      {foodIntake && (
-        <View style={{ marginTop: 20 }}>
-          <AppText style={{ fontWeight: '600', marginBottom: 10 }}>Питание</AppText>
-          {foodIntake.map((item: FoodIntakeData) => (
-            <View
-              key={item.id}
-              style={{
-                borderWidth: 1,
-                borderColor: '#E5E5E5',
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 10,
-                backgroundColor: colors.white,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <AppText style={{ fontWeight: '600', fontSize: 15 }}>{item.name}</AppText>
-                <TouchableOpacity onPress={() => handleDeleteFood(item.id)}>
-                  <AppText style={{ fontSize: 16 }}>🗑️</AppText>
-                </TouchableOpacity>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: 4,
-                }}
-              >
-                <AppText style={{ fontSize: 13, color: colors.textSecondary }}>
-                  ⚖️ {Math.round(item.grams)} г ⏰{' '}
-                  {new Date(item.intake_time).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </AppText>
-              </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🥩 {Math.round(item.protein)} г
-                </AppText>
-                <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🧈 {Math.round(item.fat)} г
-                </AppText>
-                <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
-                  🍞 {Math.round(item.carbs)} г
-                </AppText>
-                <AppText style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
-                  🔥 {Math.round(item.calories)} ккал
-                </AppText>
-              </View>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteFood(item.id)}
+                      style={{
+                        marginLeft: 8,
+                        padding: 6,
+                      }}
+                    >
+                      <AppText style={{ fontSize: 16 }}>🗑️</AppText>
+                    </TouchableOpacity>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginTop: 4,
+                    }}
+                  >
+                    <AppText style={{ fontSize: 13, color: colors.textSecondary }}>
+                      ⚖️ {Math.round(item.grams)} г ⏰{' '}
+                      {new Date(item.intake_time).toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </AppText>
+                  </View>
+                  <View
+                    style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}
+                  >
+                    <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
+                      🥩 {Math.round(item.protein)} г
+                    </AppText>
+                    <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
+                      🧈 {Math.round(item.fat)} г
+                    </AppText>
+                    <AppText style={{ fontSize: 13, color: colors.textPrimary }}>
+                      🍞 {Math.round(item.carbs)} г
+                    </AppText>
+                    <AppText style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
+                      🔥 {Math.round(item.calories)} ккал
+                    </AppText>
+                  </View>
+                </View>
+              ))}
             </View>
-          ))}
+          )}
         </View>
       )}
 
