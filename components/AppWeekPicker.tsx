@@ -1,13 +1,12 @@
 import { colors, spacing } from '@/theme';
 import React, { useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface WeekPickerProps {
   onDayChange: (date: Date) => void;
 }
 
 const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const screenWidth = Dimensions.get('window').width;
 
 const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
   const [date, setDate] = useState(new Date());
@@ -20,6 +19,13 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
     return monday;
   };
 
+  const shiftWeek = (dir: number) => {
+    const newDate = new Date(date);
+    newDate.setDate(newDate.getDate() + dir * 7);
+    setDate(newDate);
+    onDayChange(newDate);
+  };
+
   const weekStart = getWeekStart(date);
 
   const weekDates = Array.from({ length: 7 }).map((_, i) => {
@@ -28,15 +34,23 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
     return d;
   });
 
-  const handlePress = (date: Date) => {
-    setDate(date);
-    onDayChange && onDayChange(date);
+  const handlePress = (d: Date) => {
+    setDate(d);
+    onDayChange(d);
   };
-
-  const dayWidth = Math.floor((screenWidth - spacing.lg * 4) / 7);
 
   return (
     <View style={styles.container}>
+      <View style={styles.weekNav}>
+        <TouchableOpacity onPress={() => shiftWeek(-1)}>
+          <Text style={styles.navText}>←</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => shiftWeek(1)}>
+          <Text style={styles.navText}>→</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.weekWrapper}>
         {weekDates.map((item) => {
           const isSelected = item.toDateString() === date.toDateString();
@@ -47,7 +61,6 @@ const WeekPicker: React.FC<WeekPickerProps> = ({ onDayChange }) => {
               key={item.toDateString()}
               style={[styles.dayButton, isSelected && styles.selectedDay]}
               onPress={() => handlePress(item)}
-              activeOpacity={0.7}
             >
               <Text style={[styles.dayText, isSelected && styles.selectedText]}>{dayLabel}</Text>
               <Text style={[styles.dateText, isSelected && styles.selectedText]}>
@@ -66,12 +79,23 @@ export default WeekPicker;
 const styles = StyleSheet.create({
   container: {
     marginVertical: spacing.md,
-    alignItems: 'center', // центрируем рамку по горизонтали
+    alignItems: 'center',
+  },
+  weekNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 10,
+    paddingHorizontal: spacing.md,
+  },
+  navText: {
+    fontSize: 20,
+    fontWeight: '600',
   },
   weekWrapper: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: colors.border, // рамка вокруг всей недели
+    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

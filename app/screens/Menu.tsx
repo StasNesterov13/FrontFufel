@@ -27,6 +27,7 @@ const MenuScreen = () => {
 
       if (isOutOfRange) {
         try {
+          setMenuPlan(null);
           const data = await getMenuPlan(token, toISODate(date));
           setMenuPlan(data);
         } catch (error) {
@@ -54,7 +55,7 @@ const MenuScreen = () => {
         start_date: toISODate(startOfWeek(date, { weekStartsOn: 1 })),
         end_date: toISODate(endOfWeek(date, { weekStartsOn: 1 })),
       });
-      const data = await getMenuPlan(token, toISODate(new Date()));
+      const data = await getMenuPlan(token, toISODate(date));
       setMenuPlan(data);
     } catch (error) {
       console.log(error);
